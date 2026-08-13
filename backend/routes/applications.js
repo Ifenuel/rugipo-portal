@@ -410,12 +410,29 @@ router.get('/faculty-list', requireAuth, (req, res) => {
 });
 
 router.get('/me/photo', requireAuth, (req, res) => {
-  if (!req.auth.applicationId) return res.status(403).json({ error: 'Not a student token' });
-  const app = db.get('applications').find({ id: req.auth.applicationId }).value();
-  if (!app || !app.documents || !app.documents.passport) {
-    return res.status(404).json({ error: 'No passport photo on file' });
+  try {
+    const userId = req.user.id;
+
+    const app = db.get('applications')
+      .find({ userId })
+      .value();
+
+    if (!app) {
+      return res.status(404).json({ error: 'Application not found' });
+    }
+
+    const passportUrl = app.documents?.passport;
+
+    if (!passportUrl) {
+      return res.status(404).json({ error: 'Passport photograph not found' });
+    }
+
+    return res.redirect(passportUrl);
+
+  } catch (err) {
+    console.error('Error serving student photo:', err);
+    return res.status(500).json({ error: 'Failed to load passport photograph' });
   }
-  res.redirect(app.documents.passport);
 });
 
 // Distinct admission sessions with student counts and JAMB-login status — for ICT's toggle panel
