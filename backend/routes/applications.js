@@ -119,7 +119,7 @@ router.get('/status/:regOrJamb', (req, res) => {
   res.status(404).json({ found: false, error: 'No admission or registration record found for this JAMB number.' });
 });
 
-router.post('/', async (req, res, next) => {
+router.post('/', (req, res, next) => {
   uploadFields(req, res, (err) => {
     if (err) {
       if (err.code === 'LIMIT_FILE_SIZE') return res.status(400).json({ error: 'One of your files is larger than 5MB' });
