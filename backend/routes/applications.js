@@ -49,18 +49,29 @@ const ADDRESS_FORBIDDEN = /[,.:]/;
 const ALLOWED_MIME_TYPES = ['application/pdf', 'image/jpeg', 'image/png'];
 const ALLOWED_EXTENSIONS = ['.pdf', '.jpg', '.jpeg', '.png'];
 
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+
+cloudinary.config({
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.API_KEY,
+  api_secret: process.env.API_SECRET
+});
+
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: (req, file) => {
+    const safeFolder = (req.body.regOrJamb || 'unknown').replace(/[^a-zA-Z0-9]/g, '_');
+    return {
+      folder: `rugipo_documents/${safeFolder}`,
+      resource_type: 'auto',
+      public_id: file.fieldname + '-' + Date.now()
+    };
+  }
+});
+
 const upload = multer({
-  storage: multer.diskStorage({
-    destination: (req, file, cb) => {
-      const safeFolder = (req.body.regOrJamb || 'unknown').replace(/[^a-zA-Z0-9]/g, '_');
-      const dir = path.join(__dirname, '..', 'uploads', safeFolder);
-      fs.mkdirSync(dir, { recursive: true });
-      cb(null, dir);
-    },
-    filename: (req, file, cb) => {
-      cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname).toLowerCase());
-    }
-  }),
+  storage: storage,
   limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const ext = path.extname(file.originalname).toLowerCase();
@@ -175,11 +186,11 @@ if (!['full_time', 'part_time'].includes(programType)) {
   }
 
   const passportFile = req.files.passport[0];
-  const MAX_PASSPORT_BYTES = 20 * 1024;
-  if (passportFile.size > MAX_PASSPORT_BYTES) {
-    fs.unlinkSync(passportFile.path);
-    return res.status(400).json({ error: 'Passport photograph must be smaller than 20KB. Please compress it and try again.' });
-  }
+const MAX_PASSPORT_BYTES = 20 * 1024;
+if (passportFile.size > MAX_PASSPORT_BYTES) {
+  await cloudinary.uploader.destroy(passportFile.filename);
+  return res.status(400).json({ error: 'Passport photograph must be smaller than 20KB. Please compress it and try again.' });
+}
 
   const candidate = db.get('admitted_candidates').find({ regOrJamb }).value();
   if (!candidate) {
@@ -192,9 +203,9 @@ if (!['full_time', 'part_time'].includes(programType)) {
   }
 
   const documents = {};
-  ['jambLetter', 'olevel', 'birthCert', 'lga', 'passport'].forEach(field => {
-    if (req.files[field]) documents[field] = req.files[field][0].filename;
-  });
+['jambLetter', 'olevel', 'birthCert', 'lga', 'passport'].forEach(field => {
+  if (req.files[field]) documents[field] = req.files[field][0].path;
+});
 
   const hashed = bcrypt.hashSync(password, 10);
   const record = {
@@ -302,12 +313,7 @@ router.get('/:id/documents/:field', requireAuth, requireRole(...SCOPED_ROLES), (
     return res.status(403).json({ error: "You do not have permission to view this applicant's documents" });
   }
 
-  const safeFolder = app.regOrJamb.replace(/[^a-zA-Z0-9]/g, '_');
-  const filePath = path.join(__dirname, '..', 'uploads', safeFolder, app.documents[req.params.field]);
-
-  if (!fs.existsSync(filePath)) return res.status(404).json({ error: 'File missing on server' });
-
-  res.sendFile(filePath);
+  res.redirect(app.documents[req.params.field]);
 });
 
 router.put('/:id/status', requireAuth, (req, res) => {
@@ -409,10 +415,7 @@ router.get('/me/photo', requireAuth, (req, res) => {
   if (!app || !app.documents || !app.documents.passport) {
     return res.status(404).json({ error: 'No passport photo on file' });
   }
-  const safeFolder = app.regOrJamb.replace(/[^a-zA-Z0-9]/g, '_');
-  const filePath = path.join(__dirname, '..', 'uploads', safeFolder, app.documents.passport);
-  if (!fs.existsSync(filePath)) return res.status(404).json({ error: 'File missing on server' });
-  res.sendFile(filePath);
+  res.redirect(app.documents.passport);
 });
 
 // Distinct admission sessions with student counts and JAMB-login status — for ICT's toggle panel
