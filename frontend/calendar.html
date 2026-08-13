@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Academic Calendar — RUGIPO</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <img src="images/rugipo-logo.jpg" alt="RUGIPO Crest" style="width:42px;height:42px;border-radius:50%;object-fit:cover;">
+    <div>
+      <div class="name">RUGIPO</div>
+      <div class="sub">Rufus Giwa Polytechnic, Owo</div>
+    </div>
+  </div>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="calendar.html">Academic Calendar</a>
+    <a href="status.html">Check Status</a>
+    <a href="pay.html">Pay Fees</a>
+    <a href="admin.html">Staff Login</a>
+    <button type="button" onclick="window.location.href='index.html'" aria-label="Close" title="Close" style="background:none;border:none;font-size:22px;cursor:pointer;color:inherit;line-height:1;margin-left:10px;">&times;</button>
+  </nav>
+</header>
+
+<section class="calendar-page">
+  <h2 id="calTitle">Academic Calendar</h2>
+  <p class="note"></p>
+
+  <div class="cal-columns">
+    <div class="cal-block">
+      <h3>First Semester</h3>
+      <div id="firstSemesterRows"></div>
+    </div>
+
+    <div class="cal-block">
+      <h3>Second Semester</h3>
+      <div id="secondSemesterRows"></div>
+    </div>
+  </div>
+</section>
+
+<script>
+  const API_BASE = 'http://localhost:4000/api';
+
+  function renderRows(container, items){
+    container.innerHTML = '';
+    items.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'cal-row';
+      row.innerHTML = `<span>${item.label}</span><span>${item.date}</span>`;
+      container.appendChild(row);
+    });
+  }
+
+  async function loadCalendar(){
+    try{
+      const res = await fetch(`${API_BASE}/calendar`);
+      const data = await res.json();
+      document.getElementById('calTitle').textContent = data.sessionLabel;
+      renderRows(document.getElementById('firstSemesterRows'), data.firstSemester);
+      renderRows(document.getElementById('secondSemesterRows'), data.secondSemester);
+    }catch(err){
+      document.getElementById('calTitle').textContent = 'Could not load the academic calendar.';
+    }
+  }
+
+  loadCalendar();
+</script>
+
+</body>
+</html>

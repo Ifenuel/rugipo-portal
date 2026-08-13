@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Course Registration — RUGIPO</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <img src="images/rugipo-logo.jpg" alt="RUGIPO Crest" style="width:42px;height:42px;border-radius:50%;object-fit:cover;">
+    <div>
+      <div class="name">RUGIPO</div>
+      <div class="sub">Rufus Giwa Polytechnic, Owo</div>
+    </div>
+  </div>
+  <nav>
+    <a href="student-dashboard.html">Back to Portal</a>
+  </nav>
+</header>
+
+<section class="pay-page card-float">
+  <h2>Register Your Courses</h2>
+  <p class="note">Select the session, your level, and semester. Only courses uploaded by your course officer for your own level will appear here. If you have a carryover from a previous level, contact your course officer — they will add it to your form after you submit.</p>
+
+  <label for="session">Session</label>
+<input id="session" readonly style="background:#f0f0f0;">
+
+  <label for="level">Level</label>
+<input id="level" readonly style="background:#f0f0f0;">
+    <option value="">Select level</option>
+    <option>ND1</option><option>ND2</option><option>HND1</option><option>HND2</option>
+  </select>
+
+  <label for="semester">Semester</label>
+  <select id="semester">
+    <option value="">Select semester</option>
+    <option>First</option>
+    <option>Second</option>
+  </select>
+
+  <button class="btn-small" onclick="loadOffering()">Load My Courses</button>
+  <p id="loadError" class="note error" style="display:none;"></p>
+
+  <div id="coursesBox" style="display:none;margin-top:18px;">
+    <h3 style="margin-bottom:10px;">Available Courses</h3>
+    <div id="courseCheckboxes"></div>
+    <p class="note" style="margin-top:10px;">Total selected units: <strong id="unitTotal">0</strong></p>
+
+    <button class="btn-block" style="margin-top:14px;" onclick="submitRegistration()">Submit Course Registration</button>
+    <p id="submitError" class="note error" style="display:none;"></p>
+  </div>
+
+  <div id="successBox" style="display:none;">
+    <h2>Course Registration Submitted</h2>
+    <p class="note">Your form is pending approval from your course officer. If you have a carryover, they'll add it before approving.</p>
+    <a href="student-dashboard.html" class="btn-block" style="display:block;text-align:center;text-decoration:none;">Return to Portal</a>
+  </div>
+</section>
+
+<script>
+  const API_BASE = 'http://localhost:4000/api';
+  const token = sessionStorage.getItem('rugipo_student_token');
+  if(!token){ window.location.href = 'student-login.html'; }
+
+  let currentOffering = null;
+
+  async function loadOffering(){
+    const session = document.getElementById('session').value.trim();
+    const level = document.getElementById('level').value;
+    const semester = document.getElementById('semester').value;
+    const errorBox = document.getElementById('loadError');
+    errorBox.style.display = 'none';
+    document.getElementById('coursesBox').style.display = 'none';
+
+    if(!session || !level || !semester){
+      errorBox.textContent = 'Fill in session, level, and semester first.';
+      errorBox.style.display = 'block';
+      return;
+    }
+
+    try{
+      const eligRes = await fetch(`${API_BASE}/course-registrations/eligibility`, { headers: { 'Authorization': `Bearer ${token}` } });
+      const elig = await eligRes.json();
+      if(!elig.eligible){
+        errorBox.textContent = `You must complete payment before registering courses: ${elig.missing.join(', ')}.`;
+        errorBox.style.display = 'block';
+        return;
+      }
+
+      const res = await fetch(`${API_BASE}/course-offerings`, { headers: { 'Authorization': `Bearer ${token}` } });
+      const offerings = await res.json();
+      const match = offerings.find(o => o.session === session && o.level === level && o.semester === semester);
+
+      if(!match){
+        errorBox.textContent = 'No course list has been uploaded for your level, session and semester yet. Contact your course officer.';
+        errorBox.style.display = 'block';
+        return;
+      }
+
+      currentOffering = match;
+      const box = document.getElementById('courseCheckboxes');
+      box.innerHTML = '';
+      match.courses.forEach(c => {
+        const div = document.createElement('div');
+        div.style.cssText = 'padding:8px 0;border-bottom:1px solid #eee;';
+        div.innerHTML = `<label style="display:flex;align-items:center;gap:10px;">
+          <input type="checkbox" class="course-pick" value="${c.code}" data-title="${c.title}" data-units="${c.units}" onchange="updateUnitTotal()">
+          <span>${c.code} — ${c.title} (${c.units} units)</span>
+        </label>`;
+        box.appendChild(div);
+      });
+      document.getElementById('coursesBox').style.display = 'block';
+    }catch(err){
+      errorBox.textContent = 'Could not reach the server.';
+      errorBox.style.display = 'block';
+    }
+  }
+
+  function updateUnitTotal(){
+    const checked = document.querySelectorAll('.course-pick:checked');
+    let total = 0;
+    checked.forEach(cb => total += Number(cb.dataset.units));
+    document.getElementById('unitTotal').textContent = total;
+  }
+
+  async function submitRegistration(){
+    const errorBox = document.getElementById('submitError');
+    errorBox.style.display = 'none';
+
+    const checked = document.querySelectorAll('.course-pick:checked');
+    if(checked.length === 0){
+      errorBox.textContent = 'Select at least one course.';
+      errorBox.style.display = 'block';
+      return;
+    }
+
+    const courses = Array.from(checked).map(cb => ({ code: cb.value, title: cb.dataset.title, units: cb.dataset.units }));
+    const session = document.getElementById('session').value.trim();
+    const level = document.getElementById('level').value;
+    const semester = document.getElementById('semester').value;
+
+    try{
+      const res = await fetch(`${API_BASE}/course-registrations`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ session, level, semester, courses })
+      });
+      const data = await res.json();
+      if(!res.ok){
+        errorBox.textContent = data.error || 'Could not submit registration.';
+        errorBox.style.display = 'block';
+        return;
+      }
+      document.getElementById('coursesBox').style.display = 'none';
+      document.getElementById('successBox').style.display = 'block';
+    }catch(err){
+      errorBox.textContent = 'Could not reach the server.';
+      errorBox.style.display = 'block';
+    }
+  }
+
+  async function loadCurrentSession(){
+  try{
+    const res = await fetch(`${API_BASE}/settings/current-session`);
+    const data = await res.json();
+    document.getElementById('session').value = data.currentSession || '';
+  }catch(err){ /* silent */ }
+}
+loadCurrentSession();
+
+async function loadMyLevel(){
+  try{
+    const res = await fetch(`${API_BASE}/applications/me`, { headers: { 'Authorization': `Bearer ${token}` } });
+    const app = await res.json();
+    document.getElementById('level').value = app.level || '';
+  }catch(err){ /* silent */ }
+}
+loadMyLevel();
+</script>
+
+</body>
+</html>

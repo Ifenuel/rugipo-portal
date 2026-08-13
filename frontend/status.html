@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Check Status — RUGIPO</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <img src="images/rugipo-logo.jpg" alt="RUGIPO Crest" style="width:42px;height:42px;border-radius:50%;object-fit:cover;">
+    <div>
+      <div class="name">RUGIPO</div>
+      <div class="sub">Rufus Giwa Polytechnic, Owo</div>
+    </div>
+  </div>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="calendar.html">Academic Calendar</a>
+    <a href="status.html">Check Status</a>
+    <a href="pay.html">Pay Fees</a>
+    <a href="admin.html">Staff Login</a>
+    <button type="button" onclick="window.location.href='index.html'" aria-label="Close" title="Close" style="background:none;border:none;font-size:22px;cursor:pointer;color:inherit;line-height:1;margin-left:10px;">&times;</button>
+  </nav>
+</header>
+
+<section class="status-page">
+  <h2>Check Your Status</h2>
+  <p class="note">Enter your JAMB registration number to check admission status, or your RRR / matric number to check a payment.</p>
+
+  <input id="statusQuery" placeholder="Enter your reference or registration number">
+  <button class="btn-block" onclick="checkStatus()">Check Status</button>
+
+  <div id="statusResult"></div>
+</section>
+
+<script>
+  const API_BASE = 'http://localhost:4000/api';
+
+  function fmtNaira(n){ return '₦' + n.toLocaleString('en-NG'); }
+
+  async function checkStatus(){
+    const q = (document.getElementById('statusQuery').value || '').trim();
+    const box = document.getElementById('statusResult');
+
+    if(!q){
+      box.innerHTML = '<p class="note error">Enter a reference or registration number.</p>';
+      return;
+    }
+
+    box.innerHTML = '<p class="note">Checking…</p>';
+
+    try{
+      const admissionRes = await fetch(`${API_BASE}/applications/status/${encodeURIComponent(q)}`);
+      if(admissionRes.ok){
+        const a = await admissionRes.json();
+
+        if(a.stage === 'registered'){
+          box.innerHTML = `
+            <div class="ticket">
+              <div class="ticket-row"><span>Application No.</span><span>${a.applicationNo}</span></div>
+              <div class="ticket-row"><span>Name</span><span>${a.fullName}</span></div>
+              <div class="ticket-row"><span>Department</span><span>${a.department}</span></div>
+              <div class="ticket-row"><span>Status</span><span class="status-pill ${a.status === 'approved' ? 'paid' : 'pending'}">${a.status}</span></div>
+            </div>`;
+          return;
+        }
+
+        if(a.stage === 'admitted_not_registered'){
+          box.innerHTML = `
+            <div class="ticket">
+              <div class="ticket-row"><span>Name</span><span>${a.fullName}</span></div>
+              <div class="ticket-row"><span>Department</span><span>${a.department}</span></div>
+              <div class="ticket-row"><span>Status</span><span class="status-pill pending">Admitted — registration not yet started</span></div>
+            </div>
+            <p class="note" style="margin-top:12px;">You've been admitted. <a href="apply.html">Complete your registration here</a>.</p>`;
+          return;
+        }
+      }
+
+      const paymentRes = await fetch(`${API_BASE}/payments/lookup/${encodeURIComponent(q)}`);
+      if(!paymentRes.ok){
+        box.innerHTML = '<p class="note error">No record found. Double-check the number, or generate a new reference from "Pay Fees".</p>';
+        return;
+      }
+      const match = await paymentRes.json();
+
+      box.innerHTML = `
+        <div class="ticket">
+          <div class="ticket-row"><span>Payer</span><span>${match.name}</span></div>
+          <div class="ticket-row"><span>Reg. No.</span><span>${match.reg}</span></div>
+          <div class="ticket-row"><span>Purpose</span><span>${match.purpose}</span></div>
+          <div class="ticket-row"><span>Amount</span><span>${fmtNaira(match.amount)}</span></div>
+          <div class="ticket-row"><span>RRR</span><span>${match.rrr}</span></div>
+          <div class="ticket-row"><span>Status</span><span class="status-pill ${match.status}">${match.status}</span></div>
+        </div>`;
+    }catch(err){
+      box.innerHTML = '<p class="note error">Could not reach the server. Is the backend running?</p>';
+    }
+  }
+</script>
+
+</body>
+</html>

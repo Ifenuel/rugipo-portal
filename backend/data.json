@@ -1,0 +1,717 @@
+{
+  "payments": [
+    {
+      "rrr": "SIM2365266317",
+      "name": "look look",
+      "reg": "look/2026/002",
+      "email": "look@example.com",
+      "phone": "08012345678",
+      "purpose": "Acceptance Fee",
+      "amount": 25000,
+      "status": "paid",
+      "method": "card",
+      "date": "2026-08-11T06:53:48.007Z"
+    },
+    {
+      "rrr": "SIM7759029242",
+      "name": "Ode Ade",
+      "reg": "ode/2026/001",
+      "email": "odeade@example.com",
+      "phone": "09161291454",
+      "purpose": "Acceptance Fee",
+      "amount": 25000,
+      "status": "paid",
+      "method": "bank",
+      "date": "2026-08-11T07:20:19.371Z"
+    },
+    {
+      "rrr": "SIM2510924134",
+      "name": "Tire Tire",
+      "reg": "tire/2026/001",
+      "email": "tire@example.com",
+      "phone": "0802000000",
+      "purpose": "Acceptance Fee",
+      "amount": 25000,
+      "status": "paid",
+      "method": "bank",
+      "date": "2026-08-11T13:44:27.104Z"
+    },
+    {
+      "rrr": "SIM9895121861",
+      "name": "tire tire",
+      "reg": "tire/2026/001",
+      "email": "tire@example.com",
+      "phone": "08000000000",
+      "purpose": "School Fees — ND1",
+      "amount": 75000,
+      "status": "paid",
+      "method": "bank",
+      "date": "2026-08-11T13:45:49.664Z"
+    },
+    {
+      "rrr": "SIM2348251671",
+      "name": "tire tire",
+      "reg": "tire/2026/001",
+      "email": "tire@example.com",
+      "phone": "080999999999",
+      "purpose": "Admission Letter",
+      "amount": 2000,
+      "status": "paid",
+      "method": "bank",
+      "date": "2026-08-11T14:13:15.542Z"
+    },
+    {
+      "rrr": "SIM8335783198",
+      "name": "iphone iphone",
+      "reg": "iphone/2026/001",
+      "email": "iphone@example.com",
+      "phone": "08055555555",
+      "purpose": "Acceptance Fee",
+      "amount": 100000,
+      "status": "paid",
+      "method": "card",
+      "date": "2026-08-12T18:13:43.645Z",
+      "level": "ND2"
+    }
+  ],
+  "staff": [
+    {
+      "username": "adebayo.bursary",
+      "password": "$2a$10$6sPygxiMKTT3kr4zMOGu3.WLLxR50RdT1/TXqCL2/cefLz1bi/.we",
+      "role": "bursary"
+    },
+    {
+      "username": "funke.ict",
+      "password": "$2a$10$EMQSP2WvUWPVcQJHi/s0l.p/u1zCzFyezwCepjKhT0ysIO/bo6dA6",
+      "role": "ict"
+    },
+    {
+      "username": "tunde.registrar",
+      "password": "$2a$10$1tRowB3zu.bpltd35aQtGOF6jCc5wmLvQRi1VRNAhLP0jzUzyG5Ai",
+      "role": "registrar"
+    },
+    {
+      "username": "chioma.finance",
+      "password": "$2a$10$8zNWRG4ZvT9GpEr0.o.Bg.vxbBk6iA3t3PY7dnDsF8ZLYMTbcCWpq",
+      "role": "finance"
+    },
+    {
+      "username": "tunde.sciencereg",
+      "password": "$2a$10$/JXYK1N0d9rm5CJxRMnIxuLZzArUQ9PR9ue4GrLH70F6qdKz7iihW",
+      "role": "faculty_sci_eng"
+    },
+    {
+      "username": "bose.accountreg",
+      "password": "$2a$10$uQJqyMlBXM7SuwvRLIoxvOKVPiSPfwTABwJSCNFl7cQjX6hLJoXi6",
+      "role": "course_officer",
+      "department": "Accountancy"
+    },
+    {
+      "username": "ade.computereg",
+      "password": "$2a$10$xL2RSl4qOTvnBfgRM7aex.JOCgMpd25tkM6X1IPqi/wWGPLVdyOkC",
+      "role": "course_officer",
+      "department": "Computer Science"
+    },
+    {
+      "username": "emma.ictcontent",
+      "password": "$2a$10$JGFGwmMx03awyBY0oxpnu.lUH.UmCCXQ0lhlQel0C9yGiPNFRcvSa",
+      "role": "ict"
+    },
+    {
+      "username": "adunni.ictcontent",
+      "password": "$2a$10$TsMoqHP4En1WyKYuTd1x/OsFOHhXrPb0bB3vPB1RuXvEM14038.wy",
+      "role": "ict"
+    },
+    {
+      "username": "john.electofficer",
+      "password": "$2a$10$VYGv00hFC7dcuifnfJIGluK3/w2OLOeuu.nyXUgOD977uEQYUDliq",
+      "role": "course_officer",
+      "fullName": "john bull",
+      "officialEmail": "john.bull@rugipo.edu.ng",
+      "department": "Electrical Engineering"
+    }
+  ],
+  "applications": [
+    {
+      "id": "1786266965764",
+      "applicationNo": "RUG-855597",
+      "fullName": "Test Student",
+      "regOrJamb": "20261234567AB",
+      "email": "test@example.com",
+      "phone": "08000000000",
+      "department": "Office Technology and Management",
+      "password": "$2a$10$oqhMe4FCWLoc/A7P7AqtEOsFr2VMA7jp6ODVVRHIAk67byZvhLK5K",
+      "status": "admitted",
+      "date": "2026-08-09T09:16:05.764Z"
+    },
+    {
+      "id": "1786279799213",
+      "applicationNo": "RUG-757971",
+      "fullName": "Test Student",
+      "regOrJamb": "TEST/2026/001",
+      "email": "test@example.com",
+      "phone": "08012345678",
+      "department": "Accountancy",
+      "password": "$2a$10$6xB.j6lIkzT//H5OxijgvO6VlwDAAoSKklhgs3oDkpjAL3RrwRMZy",
+      "documents": {
+        "olevel": "olevel-1786279799077.jpeg",
+        "birthCert": "birthCert-1786279799082.pdf",
+        "lga": "lga-1786279799092.pdf",
+        "passport": "passport-1786279799096.jpeg"
+      },
+      "status": "admitted",
+      "date": "2026-08-09T12:49:59.213Z"
+    },
+    {
+      "id": "1786286502057",
+      "applicationNo": "RUG-965450",
+      "fullName": "look look",
+      "regOrJamb": "look/2026/002",
+      "email": "look@example.com",
+      "phone": "08012345679",
+      "department": "Computer Science",
+      "password": "$2a$10$NroSYlrcurCnVHMDejXCFu9pPbZrE.yMug/E2SbDYjJ0pQqOnr/hW",
+      "documents": {
+        "jambLetter": "jambLetter-1786286501963.jpeg",
+        "olevel": "olevel-1786286501971.jpeg",
+        "birthCert": "birthCert-1786286501973.pdf",
+        "lga": "lga-1786286501976.pdf",
+        "passport": "passport-1786286501978.jpeg"
+      },
+      "nextOfKin": {
+        "name": "EMMA",
+        "relationship": "FATHER",
+        "phone": "09161291454",
+        "address": "IBAFO"
+      },
+      "sponsor": {
+        "name": "EMMA",
+        "relationship": "PARENT",
+        "phone": "09161291454",
+        "occupation": "TRADER",
+        "address": "IBAFO"
+      },
+      "status": "approved",
+      "date": "2026-08-09T14:41:42.057Z"
+    },
+    {
+      "id": "1786432806731",
+      "applicationNo": "RUG-869587",
+      "fullName": "Ode Ade",
+      "regOrJamb": "ode/2026/001",
+      "email": "odeade@example.com",
+      "phone": "09161291454",
+      "department": "Civil Engineering",
+      "title": "Mr",
+      "gender": "Male",
+      "dob": "2007-08-11",
+      "stateOfOrigin": "Osun",
+      "nationality": "Nigerian",
+      "lgaText": "Iwo",
+      "level": "HND1",
+      "password": "$2a$10$285ekb2Y0kJXWNLxp/D7S.2szTRzmdAQDvdHJECyIzRg6lXh.bwXC",
+      "documents": {
+        "jambLetter": "jambLetter-1786432806508.jpeg",
+        "olevel": "olevel-1786432806534.jpeg",
+        "birthCert": "birthCert-1786432806544.pdf",
+        "lga": "lga-1786432806556.pdf",
+        "passport": "passport-1786432806563.jpg"
+      },
+      "nextOfKin": {
+        "name": "awoyo ife",
+        "relationship": "father",
+        "phone": "09161291454",
+        "address": "ibafo"
+      },
+      "sponsor": {
+        "name": "ode ade",
+        "relationship": "self",
+        "phone": "09161291454",
+        "occupation": "trader",
+        "address": "ibafo"
+      },
+      "status": "approved",
+      "date": "2026-08-11T07:20:06.731Z"
+    },
+    {
+      "id": "1786455803972",
+      "applicationNo": "RUG-706644",
+      "fullName": "Tire Tire",
+      "regOrJamb": "tire/2026/001",
+      "email": "tire@example.com",
+      "phone": "0802000000",
+      "department": "Electrical Engineering",
+      "title": "Miss",
+      "gender": "Female",
+      "dob": "2001-02-03",
+      "stateOfOrigin": "Abia",
+      "nationality": "Nigerian",
+      "lgaText": "kpot",
+      "level": "ND1",
+      "password": "$2a$10$r71yBoD54jVjaYFmnsCr1.HAecAP8crpngDTa76jFf1R29M1uazqK",
+      "documents": {
+        "jambLetter": "jambLetter-1786455803883.jpeg",
+        "olevel": "olevel-1786455803888.jpeg",
+        "birthCert": "birthCert-1786455803891.pdf",
+        "lga": "lga-1786455803893.pdf",
+        "passport": "passport-1786455803895.jpg"
+      },
+      "nextOfKin": {
+        "name": "Mrs Tire",
+        "relationship": "mother",
+        "phone": "08023456789",
+        "address": "ibadan"
+      },
+      "sponsor": {
+        "name": "tire",
+        "relationship": "self",
+        "phone": "08000000000",
+        "occupation": "trader",
+        "address": "ibadan"
+      },
+      "status": "approved",
+      "date": "2026-08-11T13:43:23.972Z",
+      "faculty": "Science & Engineering"
+    },
+    {
+      "id": "1786557971125",
+      "applicationNo": "RUG-331520",
+      "fullName": "iphone iphone",
+      "regOrJamb": "iphone/2026/001",
+      "email": "iphone@example.com",
+      "phone": "08055555555",
+      "department": "Office Technology and Management",
+      "title": "Mr",
+      "gender": "Male",
+      "dob": "2000-02-01",
+      "stateOfOrigin": "Ebonyi",
+      "nationality": "Nigerian",
+      "lgaText": "owerri",
+      "level": "ND2",
+      "password": "$2a$10$6UyrIPpVKt/nWC6wESajTOjvvAw2Ma1vpJjwQ9My8GgHA/3uA.kmq",
+      "documents": {
+        "jambLetter": "jambLetter-1786557971005.jpeg",
+        "olevel": "olevel-1786557971012.jpeg",
+        "birthCert": "birthCert-1786557971014.pdf",
+        "lga": "lga-1786557971019.pdf",
+        "passport": "passport-1786557971021.jpg"
+      },
+      "nextOfKin": {
+        "name": "iphone",
+        "relationship": "mother",
+        "phone": "070000000",
+        "address": "ibafo"
+      },
+      "sponsor": {
+        "name": "iphone",
+        "relationship": "parent",
+        "phone": "123456789",
+        "occupation": "civil servant",
+        "address": "ibafo"
+      },
+      "status": "approved",
+      "date": "2026-08-12T18:06:11.126Z"
+    }
+  ],
+  "admitted_candidates": [
+    {
+      "id": "1786284511657",
+      "regOrJamb": "test/2025/002",
+      "fullName": "test emma",
+      "department": "Computer Science",
+      "dateAdmitted": "2026-08-09T14:08:31.657Z"
+    },
+    {
+      "id": "1786284590861",
+      "regOrJamb": "look/2026/002",
+      "fullName": "look look",
+      "department": "Computer Science",
+      "dateAdmitted": "2026-08-09T14:09:50.861Z"
+    },
+    {
+      "id": "1786432135679",
+      "regOrJamb": "ode/2026/001",
+      "fullName": "Ode Ade",
+      "department": "Civil Engineering",
+      "dateAdmitted": "2026-08-11T07:08:55.679Z",
+      "addedBy": "tunde.registrar"
+    },
+    {
+      "id": "1786455461203",
+      "regOrJamb": "tire/2026/001",
+      "fullName": "Tire Tire",
+      "department": "Electrical Engineering",
+      "dateAdmitted": "2026-08-11T13:37:41.203Z",
+      "addedBy": "tunde.registrar"
+    },
+    {
+      "id": "1786552430831",
+      "regOrJamb": "iphone/2026/001",
+      "fullName": "iphone iphone",
+      "department": "Office Technology and Management",
+      "dateAdmitted": "2026-08-12T16:33:50.831Z",
+      "addedBy": "tunde.registrar"
+    }
+  ],
+  "loginHistory": [
+    {
+      "username": "tunde.registrar",
+      "role": "registrar",
+      "success": true,
+      "time": "2026-08-12T16:22:23.948Z"
+    },
+    {
+      "username": "tunde.registrar",
+      "role": "registrar",
+      "success": true,
+      "time": "2026-08-12T16:57:54.632Z"
+    },
+    {
+      "username": "tunde.registrar",
+      "role": "registrar",
+      "success": true,
+      "time": "2026-08-12T18:01:35.056Z"
+    },
+    {
+      "username": "tunde.registrar",
+      "role": "registrar",
+      "success": true,
+      "time": "2026-08-12T18:17:50.522Z"
+    },
+    {
+      "username": "tunde.registrar",
+      "role": "registrar",
+      "success": true,
+      "time": "2026-08-13T11:51:23.520Z"
+    },
+    {
+      "username": "funke.ict",
+      "role": "ict",
+      "success": true,
+      "time": "2026-08-13T12:11:06.098Z"
+    },
+    {
+      "username": "chioma.finance",
+      "role": "finance",
+      "success": true,
+      "time": "2026-08-13T12:15:51.695Z"
+    },
+    {
+      "username": "bose.accountreg",
+      "role": "course_officer",
+      "success": true,
+      "time": "2026-08-13T12:20:48.325Z"
+    },
+    {
+      "username": "john.electofficer",
+      "role": "course_officer",
+      "success": true,
+      "time": "2026-08-13T12:24:44.353Z"
+    },
+    {
+      "username": "tunde.sciencereg",
+      "role": "faculty_sci_eng",
+      "success": true,
+      "time": "2026-08-13T12:37:01.227Z"
+    },
+    {
+      "username": "tunde.registrar",
+      "role": "registrar",
+      "success": true,
+      "time": "2026-08-13T15:00:29.189Z"
+    },
+    {
+      "username": "tunde.registrar",
+      "role": "registrar",
+      "success": true,
+      "time": "2026-08-13T15:30:49.991Z"
+    }
+  ],
+  "course_registrations": [
+    {
+      "id": "1786307877741",
+      "regOrJamb": "look/2026/002",
+      "fullName": "look look",
+      "department": "Computer Science",
+      "session": "2026/2027",
+      "level": "ND2",
+      "courses": [
+        {
+          "code": "CSC201",
+          "title": "COMPUTER SCIENCE INTRODUCTION",
+          "units": 2
+        },
+        {
+          "code": "CSP210",
+          "title": "INTRODUCTION TO AGRIC",
+          "units": 3
+        }
+      ],
+      "totalUnits": 5,
+      "status": "approved",
+      "uploadedBy": "ade.computereg",
+      "dateUploaded": "2026-08-09T20:37:57.741Z",
+      "approvedBy": "ade.computereg",
+      "dateApproved": "2026-08-09T20:38:07.244Z"
+    },
+    {
+      "id": "1786457797603",
+      "regOrJamb": "tire/2026/001",
+      "fullName": "Tire Tire",
+      "department": "Electrical Engineering",
+      "session": "2026/2027",
+      "level": "ND1",
+      "semester": "First",
+      "courses": [
+        {
+          "code": "eee201",
+          "title": "engineering practicals",
+          "units": 6
+        },
+        {
+          "code": "mts201",
+          "title": "mathematics",
+          "units": 4
+        }
+      ],
+      "totalUnits": 10,
+      "status": "approved",
+      "dateUploaded": "2026-08-11T14:16:37.603Z",
+      "approvedBy": "john.electofficer",
+      "dateApproved": "2026-08-11T14:29:21.760Z"
+    }
+  ],
+  "course_offerings": [
+    {
+      "id": "1786314114117",
+      "department": "Computer Science",
+      "session": "2026/2027",
+      "level": "ND1",
+      "semester": "First",
+      "courses": [
+        {
+          "code": "csc 201",
+          "title": "introduction to computer",
+          "units": 3
+        },
+        {
+          "code": "csp201",
+          "title": "introduction to agric",
+          "units": 1
+        },
+        {
+          "code": "mts201",
+          "title": "introduction to mathematics",
+          "units": 3
+        }
+      ],
+      "uploadedBy": "ade.computereg",
+      "dateUploaded": "2026-08-09T22:21:54.118Z"
+    },
+    {
+      "id": "1786338204210",
+      "department": "Computer Science",
+      "session": "2026/2027",
+      "level": "ND2",
+      "semester": "Second",
+      "courses": [
+        {
+          "code": "phs201",
+          "title": "physiology introduction",
+          "units": 3
+        },
+        {
+          "code": "phs203",
+          "title": "blood physiology",
+          "units": 3
+        },
+        {
+          "code": "ana201",
+          "title": "anatomy introduction",
+          "units": 2
+        },
+        {
+          "code": "phs204",
+          "title": "renal physiology",
+          "units": 3
+        }
+      ],
+      "uploadedBy": "ade.computereg",
+      "dateUploaded": "2026-08-10T05:03:24.210Z"
+    },
+    {
+      "id": "1786457482774",
+      "department": "Electrical Engineering",
+      "session": "2026/2027",
+      "level": "ND1",
+      "semester": "First",
+      "courses": [
+        {
+          "code": "eee201",
+          "title": "engineering practicals",
+          "units": 6
+        },
+        {
+          "code": "mts201",
+          "title": "mathematics",
+          "units": 4
+        }
+      ],
+      "uploadedBy": "john.electofficer",
+      "dateUploaded": "2026-08-11T14:11:22.774Z",
+      "updatedBy": "john.electofficer",
+      "dateUpdated": "2026-08-11T14:11:42.745Z"
+    }
+  ],
+  "news": [],
+  "settings": {
+    "currentSession": "2026/2027",
+    "admission": {
+      "label": "Registration Now Open",
+      "active": true
+    },
+    "feeSchedule": {
+      "acceptance": 10000,
+      "letter": 20000,
+      "verification": 30000,
+      "transcript": 40000,
+      "schoolFees": {
+        "full_time": {
+          "ND1": 70000,
+          "ND2": 80000,
+          "HND1": 90000,
+          "HND2": 100000
+        },
+        "part_time": {
+          "ND1": 200000,
+          "ND2": 300000,
+          "HND1": 400000,
+          "HND2": 500000
+        }
+      },
+      "hostels": {
+        "hostel_akindeko_hostel": {
+          "label": "Akindeko Hostel",
+          "amount": 8000
+        },
+        "hostel_abiola_hostel": {
+          "label": "Abiola Hostel",
+          "amount": 12000
+        },
+        "hostel_jibowu_hostel": {
+          "label": "Jibowu Hostel",
+          "amount": 8000
+        }
+      }
+    },
+    "ticker": [
+      "Admission into 2026/2027 session is going on --- apply",
+      "Course registration is open for all approved students."
+    ],
+    "jambDisabledSessions": []
+  },
+  "calendar": {
+    "sessionLabel": "2025/2026 Academic Calendar",
+    "firstSemester": [
+      {
+        "label": "Resumption & Registration",
+        "date": "12 Jan"
+      },
+      {
+        "label": "Matriculation Ceremony",
+        "date": "19 Feb"
+      },
+      {
+        "label": "End of Lectures",
+        "date": "27 Feb"
+      },
+      {
+        "label": "Semester Examinations",
+        "date": "2–20 Mar"
+      },
+      {
+        "label": "End of First Semester",
+        "date": "15 May"
+      }
+    ],
+    "secondSemester": [
+      {
+        "label": "Resumption",
+        "date": "19 May"
+      },
+      {
+        "label": "Mid-Semester Break",
+        "date": "6–10 Jul"
+      },
+      {
+        "label": "End of Lectures",
+        "date": "14 Aug"
+      },
+      {
+        "label": "Semester Examinations",
+        "date": "17 Aug–4 Sep"
+      },
+      {
+        "label": "Resumption for New Session",
+        "date": "28 Sep"
+      }
+    ]
+  },
+  "results": [
+    {
+      "id": "1786495026780",
+      "regOrJamb": "tire/2026/001",
+      "fullName": "Tire Tire",
+      "department": "Electrical Engineering",
+      "session": "2026/2027",
+      "level": "ND1",
+      "semester": "First",
+      "scores": [
+        {
+          "code": "eee201",
+          "title": "engineering practicals",
+          "units": 6,
+          "score": 56,
+          "grade": "C",
+          "point": 3
+        },
+        {
+          "code": "mts201",
+          "title": "mathematics",
+          "units": 4,
+          "score": 70,
+          "grade": "A",
+          "point": 5
+        }
+      ],
+      "totalUnits": 10,
+      "totalPoints": 38,
+      "gpa": 3.8,
+      "uploadedBy": "john.electofficer",
+      "dateUploaded": "2026-08-12T00:37:06.780Z"
+    }
+  ],
+  "officers": [
+    {
+      "initials": "O.S",
+      "name": "Engnr. O.S LAWSON",
+      "role": "AG. Rector"
+    },
+    {
+      "initials": "O.M",
+      "name": "MR O.M OLOYE",
+      "role": "AG. REGISTRAR"
+    },
+    {
+      "initials": "O.O",
+      "name": "MR. O.O OYEWUSI",
+      "role": "AG.BURSAR"
+    },
+    {
+      "initials": "S.K",
+      "name": "DR. S.K AYODELE",
+      "role": "COORD LIBRARY"
+    }
+  ],
+  "transcript_requests": []
+}

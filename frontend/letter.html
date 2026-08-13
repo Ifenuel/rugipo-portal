@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admission Letter — RUGIPO</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="crest">RG</div>
+    <div>
+      <div class="name">RUGIPO</div>
+      <div class="sub">Rufus Giwa Polytechnic, Owo</div>
+    </div>
+  </div>
+  <nav>
+    <a href="student-dashboard.html">Back to Portal</a>
+  </nav>
+</header>
+
+<section class="pay-page" style="max-width:650px;">
+  <div id="checking"><p class="note">Checking payment status…</p></div>
+
+  <div id="notPaid" style="display:none;">
+    <h2>Payment Required</h2>
+    <p class="note">You need to pay the admission letter fee before you can print your letter.</p>
+    <a href="pay.html?type=letter" class="btn-block" style="display:block;text-align:center;text-decoration:none;">Pay Admission Letter Fee</a>
+  </div>
+
+  <div id="letterView" style="display:none;">
+    <div class="letter-doc">
+      <img src="images/rugipo-logo.jpg" alt="RUGIPO Crest" style="width:70px;height:70px;display:block;margin:0 auto 10px;object-fit:contain;">
+      <h2 style="text-align:center;">RUFUS GIWA POLYTECHNIC, OWO</h2>
+      <p style="text-align:center;" class="note">Km 46, Off Benin–Owo Expressway, Owo, Ondo State</p>
+      <hr style="margin:20px 0;">
+      <p><strong>OFFICIAL LETTER OF ADMISSION</strong></p>
+      <p id="letterBody" style="margin-top:14px;font-size:14px;line-height:1.7;"></p>
+    </div>
+    <button class="btn-block" onclick="window.print()">Print This Letter</button>
+  </div>
+</section>
+
+<script>
+  const API_BASE = 'http://localhost:4000/api';
+  const token = sessionStorage.getItem('rugipo_student_token');
+  const reg = sessionStorage.getItem('rugipo_student_reg');
+
+  if(!token){
+    window.location.href = 'student-login.html';
+  }
+
+  async function checkAndLoad(){
+    try{
+      const profileRes = await fetch(`${API_BASE}/applications/me`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const app = await profileRes.json();
+
+      const payRes = await fetch(`${API_BASE}/payments/check-letter/${encodeURIComponent(reg)}`);
+      const payStatus = await payRes.json();
+
+      document.getElementById('checking').style.display = 'none';
+
+      if(!payStatus.paid){
+        document.getElementById('notPaid').style.display = 'block';
+        return;
+      }
+
+      document.getElementById('letterBody').textContent =
+        `This is to confirm that ${app.fullName} (Application No: ${app.applicationNo}) has been offered admission into the ${app.department} programme at Rufus Giwa Polytechnic, Owo for the 2026/2027 academic session.`;
+
+      document.getElementById('letterView').style.display = 'block';
+    }catch(err){
+      document.getElementById('checking').innerHTML = '<p class="note error">Could not reach the server. Is the backend running?</p>';
+    }
+  }
+
+  checkAndLoad();
+</script>
+
+</body>
+</html>

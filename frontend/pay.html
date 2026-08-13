@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pay Fees — RUGIPO</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <img src="images/rugipo-logo.jpg" alt="RUGIPO Crest" style="width:42px;height:42px;border-radius:50%;object-fit:cover;">
+    <div>
+      <div class="name">RUGIPO</div>
+      <div class="sub">Rufus Giwa Polytechnic, Owo</div>
+    </div>
+  </div>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="calendar.html">Academic Calendar</a>
+    <a href="status.html">Check Status</a>
+    <a href="pay.html">Pay Fees</a>
+    <a href="admin.html">Staff Login</a>
+    <button type="button" onclick="window.location.href='index.html'" aria-label="Close" title="Close" style="background:none;border:none;font-size:22px;cursor:pointer;color:inherit;line-height:1;margin-left:10px;">&times;</button>
+  </nav>
+</header>
+
+<section class="pay-page">
+
+  <div id="step-form">
+    <h2>Payment Details</h2>
+    <p class="note">Fill this in exactly as it appears on your admission or student record.</p>
+
+    <label for="feeType">What are you paying for?</label>
+<select id="feeType">
+  <option value="acceptance">Acceptance Fee</option>
+  <option value="schoolfees">School Fees (amount based on your admission level)</option>
+  <option value="letter">Admission Letter</option>
+  <option value="verification">Result Verification</option>
+  <option value="transcript">Transcript Request</option>
+  <optgroup label="Hostel Accommodation (optional)" id="hostelOptGroup"></optgroup>
+</select>
+
+    <label for="fullName">Full name</label>
+    <input id="fullName" placeholder="As on admission letter">
+
+    <label for="regNo">JAMB / Matric number</label>
+    <input id="regNo" placeholder="e.g. RUGIPO/ND/24/1234">
+    <div id="schoolFeePreview" class="note" style="display:none;margin-top:6px;"></div>
+
+    <label for="email">Email</label>
+    <input id="email" type="email" placeholder="you@example.com">
+
+    <label for="phone">Phone number</label>
+    <input id="phone" placeholder="080...">
+
+    <button class="btn-block" onclick="generateRRR()">Generate Reference (RRR)</button>
+    <p id="formError" class="note error" style="display:none;"></p>
+  </div>
+
+  <div id="schoolFeeSchedule" class="note" style="margin-top:8px;"></div>
+
+  <div id="step-rrr" style="display:none;">
+    <h2>Your Reference Is Ready</h2>
+
+    <div class="ticket">
+      <div class="rrr-code" id="rrrDisplay"></div>
+      <div class="ticket-row"><span>Payer</span><span id="rrrPayer"></span></div>
+      <div class="ticket-row"><span>Purpose</span><span id="rrrPurpose"></span></div>
+      <div class="ticket-row"><span>Amount</span><span id="rrrAmount"></span></div>
+    </div>
+
+    <label>Choose payment method</label>
+    <div class="pay-methods">
+      <div class="pay-method" data-m="card" onclick="selectMethod(this)">Card</div>
+      <div class="pay-method" data-m="bank" onclick="selectMethod(this)">Bank Transfer</div>
+      <div class="pay-method" data-m="ussd" onclick="selectMethod(this)">USSD</div>
+    </div>
+
+    <button class="btn-block" id="completeBtn" disabled onclick="completePayment()">Complete Payment (simulated)</button>
+    <p class="note">SIMULATED — connected to Remita's public test sandbox, not the live network yet.</p>
+  </div>
+
+  <div id="step-done" style="display:none;">
+  <h2>Payment Successful</h2>
+  <div id="receiptBody"></div>
+  <div id="postPaymentActions" style="margin-top:14px;"></div>
+  <button class="btn-block" style="margin-top:10px;" onclick="resetFlow()">Make Another Payment</button>
+</div>
+
+</section>
+
+<script>
+  const API_BASE = 'http://localhost:4000/api';
+
+  let currentMethod = null;
+  let currentRecord = null;
+
+  function fmtNaira(n){ return '₦' + n.toLocaleString('en-NG'); }
+
+  async function checkSchoolFeeLevel(){
+    const feeType = document.getElementById('feeType').value;
+    const reg = document.getElementById('regNo').value.trim();
+    const preview = document.getElementById('schoolFeePreview');
+
+    if(feeType !== 'schoolfees' || !reg){
+      preview.style.display = 'none';
+      return;
+    }
+
+    try{
+      const res = await fetch(`${API_BASE}/payments/my-level/${encodeURIComponent(reg)}`);
+      const data = await res.json();
+      if(!res.ok){
+        preview.textContent = data.error || 'Could not find your level.';
+        preview.style.display = 'block';
+        return;
+      }
+      if(!data.amount){
+        preview.textContent = `Your level is ${data.level}, but the fee for it hasn't been set yet. Contact the registrar's office.`;
+        preview.style.display = 'block';
+        return;
+      }
+      preview.textContent = `You are ${data.level} — your school fees is ${fmtNaira(data.amount)}.`;
+      preview.style.display = 'block';
+    }catch(err){
+      preview.style.display = 'none';
+    }
+  }
+
+  document.getElementById('regNo').addEventListener('blur', checkSchoolFeeLevel);
+  document.getElementById('feeType').addEventListener('change', checkSchoolFeeLevel);
+
+  async function generateRRR(){
+    const name = document.getElementById('fullName').value.trim();
+    const reg = document.getElementById('regNo').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const feeType = document.getElementById('feeType').value;
+
+    const errorBox = document.getElementById('formError');
+    errorBox.style.display = 'none';
+
+    if(!name || !reg || !email || !phone){
+      errorBox.textContent = 'Please fill in every field before generating your reference number.';
+      errorBox.style.display = 'block';
+      return;
+    }
+
+    try{
+      const res = await fetch(`${API_BASE}/payments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, reg, email, phone, feeType })
+      });
+
+      if(!res.ok){
+        const errData = await res.json().catch(() => ({}));
+        errorBox.textContent = errData.error || 'Server error generating reference number.';
+        errorBox.style.display = 'block';
+        return;
+      }
+
+      currentRecord = await res.json();
+
+      document.getElementById('rrrDisplay').textContent = currentRecord.rrr;
+      document.getElementById('rrrPayer').textContent = currentRecord.name;
+      document.getElementById('rrrPurpose').textContent = currentRecord.purpose;
+      document.getElementById('rrrAmount').textContent = fmtNaira(currentRecord.amount);
+
+      document.getElementById('step-form').style.display = 'none';
+      document.getElementById('step-rrr').style.display = 'block';
+    }catch(err){
+      errorBox.textContent = 'Could not reach the server. Is the backend running (npm start in the backend folder)?';
+      errorBox.style.display = 'block';
+    }
+  }
+
+  function selectMethod(el){
+    document.querySelectorAll('.pay-method').forEach(m => m.classList.remove('selected'));
+    el.classList.add('selected');
+    currentMethod = el.dataset.m;
+    document.getElementById('completeBtn').disabled = false;
+  }
+
+  async function completePayment(){
+    const rrrParam = encodeURIComponent(currentRecord.rrr);
+    const res = await fetch(`${API_BASE}/payments/${rrrParam}/complete`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ method: currentMethod })
+    });
+
+    currentRecord = await res.json();
+
+    document.getElementById('receiptBody').innerHTML = `
+      <div class="receipt-line"><span>RRR</span><span>${currentRecord.rrr}</span></div>
+      <div class="receipt-line"><span>Payer</span><span>${currentRecord.name}</span></div>
+      <div class="receipt-line"><span>Reg. No.</span><span>${currentRecord.reg}</span></div>
+      <div class="receipt-line"><span>Purpose</span><span>${currentRecord.purpose}</span></div>
+      <div class="receipt-line"><span>Amount</span><span>${fmtNaira(currentRecord.amount)}</span></div>
+      <div class="receipt-line"><span>Method</span><span>${currentMethod.toUpperCase()}</span></div>
+    `;
+
+    const studentToken = localStorage.getItem('rugipo_student_token');
+const postActions = document.getElementById('postPaymentActions');
+if(studentToken){
+  postActions.innerHTML = `<a href="student-dashboard.html" class="btn-block" style="display:block;text-align:center;text-decoration:none;">Return to Student Portal</a>`;
+} else {
+  postActions.innerHTML = `<a href="student-login.html?reg=${encodeURIComponent(currentRecord.reg)}" class="btn-block" style="display:block;text-align:center;text-decoration:none;">Go to Student Login</a>`;
+}
+
+document.getElementById('step-rrr').style.display = 'none';
+document.getElementById('step-done').style.display = 'block';
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+  const params = new URLSearchParams(window.location.search);
+  const type = params.get('type');
+  const reg = params.get('reg');
+  const name = params.get('name');
+  const email = params.get('email');
+  const phone = params.get('phone');
+
+  if(type) document.getElementById('feeType').value = type;
+  if(reg) document.getElementById('regNo').value = reg;
+  if(name) document.getElementById('fullName').value = name;
+  if(email) document.getElementById('email').value = email;
+  if(phone) document.getElementById('phone').value = phone;
+
+  checkSchoolFeeLevel();
+
+  fetch(`${API_BASE}/payments/hostels`)
+      .then(r => r.json())
+      .then(hostels => {
+        const group = document.getElementById('hostelOptGroup');
+
+        hostels.forEach(h => {
+          const opt = document.createElement('option');
+          opt.value = h.key;
+          opt.textContent = `${h.label} — ₦${h.amount.toLocaleString('en-NG')}`;
+          group.appendChild(opt);
+        });
+      })
+      .catch(err => {
+        console.error('Could not load hostel options:', err);
+      });
+  });
+
+  fetch(`${API_BASE}/payments/school-fees`)
+  .then(r => r.json())
+  .then(fees => {
+    const lines = Object.keys(fees).map(level => `${level}: ₦${fees[level].toLocaleString('en-NG')}`);
+    document.getElementById('schoolFeeSchedule').textContent = 'School Fees by level — ' + lines.join(' | ');
+  })
+  .catch(() => {});
+
+fetch(`${API_BASE}/payments/fee-schedule`)
+  .then(r => r.json())
+  .then(fees => {
+    const feeType = document.getElementById('feeType');
+
+    const acceptance = feeType.querySelector('option[value="acceptance"]');
+    const letter = feeType.querySelector('option[value="letter"]');
+    const verification = feeType.querySelector('option[value="verification"]');
+    const transcript = feeType.querySelector('option[value="transcript"]');
+
+    if (acceptance && fees.acceptance) {
+      acceptance.textContent = `Acceptance Fee — ${fmtNaira(fees.acceptance)}`;
+    }
+
+    if (letter && fees.letter) {
+      letter.textContent = `Admission Letter — ${fmtNaira(fees.letter)}`;
+    }
+
+    if (verification && fees.verification) {
+      verification.textContent = `Result Verification — ${fmtNaira(fees.verification)}`;
+    }
+
+    if (transcript && fees.transcript) {
+      transcript.textContent = `Transcript Request — ${fmtNaira(fees.transcript)}`;
+    }
+  })
+  .catch(err => {
+    console.error('Could not load fee schedule:', err);
+  });
+  
+
+  function resetFlow(){
+    document.getElementById('fullName').value = '';
+    document.getElementById('regNo').value = '';
+    document.getElementById('email').value = '';
+    document.getElementById('phone').value = '';
+    currentMethod = null;
+    currentRecord = null;
+
+    document.querySelectorAll('.pay-method').forEach(m => m.classList.remove('selected'));
+    document.getElementById('completeBtn').disabled = true;
+    document.getElementById('step-done').style.display = 'none';
+    document.getElementById('step-form').style.display = 'block';
+  }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Course Registration Form — RUGIPO</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+  .course-form-wrap{ position:relative; max-width:750px; margin:30px auto; padding:30px; border:1px solid #DCD8C9; background:#fff; overflow:hidden; }
+  .watermark{ position:absolute; inset:0; background-image:url('images/rugipo-gate.jpg.jpeg'); background-size:contain; background-repeat:no-repeat; background-position:center; opacity:0.08; z-index:0; }
+  .course-form-content{ position:relative; z-index:1; }
+  .course-table{ width:100%; border-collapse:collapse; margin-top:16px; }
+  .course-table th, .course-table td{ border:1px solid #DCD8C9; padding:8px 10px; text-align:left; font-size:14px; }
+  .stamp{ display:inline-block; padding:6px 16px; border:2px solid; border-radius:4px; font-weight:bold; letter-spacing:1px; margin-top:14px; }
+  .stamp.pending{ color:#a15c00; border-color:#a15c00; }
+  .stamp.approved{ color:#0a6b2c; border-color:#0a6b2c; }
+  @media print { header, nav, .no-print { display:none !important; } }
+</style>
+</head>
+<body>
+
+<header class="no-print">
+  <div class="brand">
+    <div class="crest">RG</div>
+    <div>
+      <div class="name">RUGIPO</div>
+      <div class="sub">Rufus Giwa Polytechnic, Owo</div>
+    </div>
+  </div>
+  <nav>
+    <a href="student-dashboard.html">Back to Portal</a>
+  </nav>
+</header>
+
+<div id="loadingMsg" class="note" style="text-align:center;margin-top:30px;">Loading your course registration…</div>
+<div id="noneMsg" class="note error" style="display:none;text-align:center;margin-top:30px;">No course registration form has been uploaded for you yet. Check back once your departmental course officer has uploaded it.</div>
+
+<div id="formWrap" class="course-form-wrap" style="display:none;">
+  <div class="watermark"></div>
+  <div class="course-form-content">
+    <div style="text-align:center;">
+      <img src="images/rugipo-logo.jpg" alt="RUGIPO Crest" style="width:70px;height:70px;display:block;margin:0 auto 8px;object-fit:contain;">
+      <h2>RUFUS GIWA POLYTECHNIC, OWO</h2>
+      <p class="note">Km 46, Off Benin–Owo Expressway, Owo, Ondo State</p>
+      <h3 style="margin-top:16px;">COURSE REGISTRATION FORM</h3>
+    </div>
+
+    <hr style="margin:18px 0;">
+
+    <div class="ticket-row"><span>Name</span><span id="fFullName"></span></div>
+    <div class="ticket-row"><span>Reg / JAMB No.</span><span id="fReg"></span></div>
+    <div class="ticket-row"><span>Department</span><span id="fDept"></span></div>
+    <div class="ticket-row"><span>Session</span><span id="fSession"></span></div>
+    <div class="ticket-row"><span>Level</span><span id="fLevel"></span></div>
+
+    <table class="course-table">
+      <thead><tr><th>Course Code</th><th>Course Title</th><th>Units</th></tr></thead>
+      <tbody id="courseRows"></tbody>
+    </table>
+
+    <p style="margin-top:10px;"><strong>Total Units: <span id="fTotalUnits"></span></strong></p>
+
+    <div style="text-align:center;">
+      <span id="statusStamp" class="stamp"></span>
+    </div>
+
+    <button class="btn-block no-print" style="margin-top:24px;" onclick="window.print()">Print This Form</button>
+  </div>
+</div>
+
+<script>
+  const API_BASE = 'http://localhost:4000/api';
+  const token = sessionStorage.getItem('rugipo_student_token');
+  if(!token){ window.location.href = 'student-login.html'; }
+
+  async function checkAndLoad(){
+  try{
+    const eligRes = await fetch(`${API_BASE}/course-registrations/eligibility`, { headers: { 'Authorization': `Bearer ${token}` } });
+    const elig = await eligRes.json();
+
+    if(!elig.eligible){
+      document.getElementById('loadingMsg').style.display = 'none';
+      document.getElementById('noneMsg').textContent = `You must complete payment before printing: ${elig.missing.join(', ')}.`;
+      document.getElementById('noneMsg').style.display = 'block';
+      return;
+    }
+
+    const res = await fetch(`${API_BASE}/course-registrations/me`, { headers: { 'Authorization': `Bearer ${token}` } });
+    const records = await res.json();
+
+    document.getElementById('loadingMsg').style.display = 'none';
+
+    if(!Array.isArray(records) || records.length === 0){
+      document.getElementById('noneMsg').textContent = 'No course registration form has been uploaded for you yet. Check back once your departmental course officer has uploaded it.';
+      document.getElementById('noneMsg').style.display = 'block';
+      return;
+    }
+
+    const record = records.slice().sort((a,b) => new Date(b.dateUploaded) - new Date(a.dateUploaded))[0];
+
+    document.getElementById('fFullName').textContent = record.fullName;
+    document.getElementById('fReg').textContent = record.regOrJamb;
+    document.getElementById('fDept').textContent = record.department;
+    document.getElementById('fSession').textContent = record.session;
+    document.getElementById('fLevel').textContent = record.level || '—';
+    document.getElementById('fTotalUnits').textContent = record.totalUnits;
+
+    const rows = document.getElementById('courseRows');
+    rows.innerHTML = '';
+    record.courses.forEach(c => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${c.code}</td><td>${c.title}</td><td>${c.units}</td>`;
+      rows.appendChild(tr);
+    });
+
+    const stamp = document.getElementById('statusStamp');
+    stamp.textContent = record.status.toUpperCase();
+    stamp.className = 'stamp ' + record.status;
+
+    document.getElementById('formWrap').style.display = 'block';
+  }catch(err){
+    document.getElementById('loadingMsg').textContent = 'Could not reach the server. Is the backend running?';
+  }
+}
+
+checkAndLoad();
+</script>
+
+</body>
+</html>

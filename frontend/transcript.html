@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Request Transcript — RUGIPO</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header>
+  <div class="brand">
+    <img src="images/rugipo-logo.jpg" alt="RUGIPO Crest" style="width:42px;height:42px;border-radius:50%;object-fit:cover;">
+    <div><div class="name">RUGIPO</div><div class="sub">Rufus Giwa Polytechnic, Owo</div></div>
+  </div>
+  <nav><a href="index.html">Home</a></nav>
+</header>
+
+<section class="pay-page">
+  <h2>Request Official Transcript</h2>
+  <p class="note">For graduates only. Your transcript will be sent directly to the institution or employer you specify.</p>
+
+  <label for="tFullName">Full Name (as on certificate)</label>
+  <input id="tFullName">
+  <label for="tReg">Matric / Reg Number</label>
+  <input id="tReg">
+  <label for="tEmail">Email</label>
+  <input id="tEmail" type="email">
+  <label for="tPhone">Phone</label>
+  <input id="tPhone">
+  <label for="tYear">Year of Graduation</label>
+  <input id="tYear" placeholder="e.g. 2022">
+  <label for="tDestName">Destination Institution / Employer Name</label>
+  <input id="tDestName">
+  <label for="tDestAddress">Destination Address</label>
+  <input id="tDestAddress">
+  <label for="tCopies">Number of Copies</label>
+  <input id="tCopies" type="number" min="1" value="1">
+
+  <button class="btn-block" onclick="submitTranscript()">Submit Request</button>
+  <p id="tError" class="note error" style="display:none;"></p>
+  <div id="tSuccess" style="display:none;">
+    <div class="ticket" style="margin-top:14px;">
+      <div class="ticket-row"><span>Your Reference</span><span id="tRefDisplay" style="font-weight:bold;"></span></div>
+    </div>
+    <p class="note">Save this reference number. Next, pay the transcript fee using it.</p>
+    <a id="tPayLink" href="#" class="btn-block" style="display:block;text-align:center;text-decoration:none;">Pay Transcript Fee</a>
+  </div>
+</section>
+
+<script>
+  const API_BASE = 'http://localhost:4000/api';
+
+  async function submitTranscript(){
+    const body = {
+      fullName: document.getElementById('tFullName').value.trim(),
+      regOrJamb: document.getElementById('tReg').value.trim(),
+      email: document.getElementById('tEmail').value.trim(),
+      phone: document.getElementById('tPhone').value.trim(),
+      graduationYear: document.getElementById('tYear').value.trim(),
+      destinationName: document.getElementById('tDestName').value.trim(),
+      destinationAddress: document.getElementById('tDestAddress').value.trim(),
+      copies: document.getElementById('tCopies').value
+    };
+    const errorBox = document.getElementById('tError');
+    errorBox.style.display = 'none';
+
+    if(Object.values(body).some(v => !v)){
+      errorBox.textContent = 'Please fill in every field.';
+      errorBox.style.display = 'block';
+      return;
+    }
+
+    try{
+      const res = await fetch(`${API_BASE}/transcripts`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      if(!res.ok){ errorBox.textContent = data.error || 'Could not submit request.'; errorBox.style.display = 'block'; return; }
+
+      document.getElementById('tRefDisplay').textContent = data.ref;
+      document.getElementById('tPayLink').href = `pay.html?type=transcript&reg=${encodeURIComponent(data.regOrJamb)}&name=${encodeURIComponent(data.fullName)}&email=${encodeURIComponent(data.email)}&phone=${encodeURIComponent(data.phone)}`;
+      document.getElementById('tSuccess').style.display = 'block';
+    }catch(err){
+      errorBox.textContent = 'Could not reach the server.';
+      errorBox.style.display = 'block';
+    }
+  }
+</script>
+</body>
+</html>

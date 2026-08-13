@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Application — RUGIPO</title>
+<link rel="stylesheet" href="css/style.css">
+<style>@media print { header, .no-print { display:none !important; } }</style>
+</head>
+<body>
+
+<header class="no-print">
+  <div class="brand">
+    <img src="images/rugipo-logo.jpg" alt="RUGIPO Crest" style="width:42px;height:42px;border-radius:50%;object-fit:cover;">
+    <div><div class="name">RUGIPO</div><div class="sub">Rufus Giwa Polytechnic, Owo</div></div>
+  </div>
+  <nav><a href="index.html">Home</a></nav>
+</header>
+
+<section class="pay-page card-float" style="max-width:650px;">
+  <div style="text-align:center;margin-bottom:16px;">
+    <img src="images/rugipo-logo.jpg" alt="RUGIPO Crest" style="width:56px;height:56px;border-radius:50%;object-fit:cover;">
+    <h2 style="margin:8px 0 0;">RUGIPO Admission Application</h2>
+    <p class="note">Rufus Giwa Polytechnic, Owo</p>
+  </div>
+  <div id="loadingMsg" class="note">Loading…</div>
+  <div id="summaryBody" class="ticket"></div>
+  <button class="btn-block no-print" style="margin-top:16px;display:none;" id="printBtn" onclick="window.print()">Print / Save as PDF</button>
+  <p id="errorMsg" class="note error" style="display:none;"></p>
+</section>
+
+<script>
+  const API_BASE = 'http://localhost:4000/api';
+
+  function renderApp(app){
+    document.getElementById('loadingMsg').style.display = 'none';
+    document.getElementById('summaryBody').innerHTML = `
+      <div class="ticket-row"><span>Application No.</span><span>${app.applicationNo}</span></div>
+      <div class="ticket-row"><span>Title</span><span>${app.title || '—'}</span></div>
+      <div class="ticket-row"><span>Full Name</span><span>${app.fullName}</span></div>
+      <div class="ticket-row"><span>Gender</span><span>${app.gender || '—'}</span></div>
+      <div class="ticket-row"><span>Date of Birth</span><span>${app.dob ? new Date(app.dob).toLocaleDateString() : '—'}</span></div>
+      <div class="ticket-row"><span>State of Origin</span><span>${app.stateOfOrigin || '—'}</span></div>
+      <div class="ticket-row"><span>Department</span><span>${app.department}</span></div>
+      <div class="ticket-row"><span>Faculty</span><span>${app.faculty || '—'}</span></div>
+      <div class="ticket-row"><span>Level</span><span>${app.level || '—'}</span></div>
+      <div class="ticket-row"><span>Reg/JAMB No.</span><span>${app.regOrJamb}</span></div>
+      <div class="ticket-row"><span>Email</span><span>${app.email}</span></div>
+      <div class="ticket-row"><span>Phone</span><span>${app.phone}</span></div>
+      <div class="ticket-row"><span>Status</span><span class="status-pill ${app.status === 'approved' ? 'paid' : 'pending'}">${app.status}</span></div>
+    `;
+    document.getElementById('printBtn').style.display = 'block';
+  }
+
+  async function load(){
+    const temp = sessionStorage.getItem('rugipo_temp_application');
+    if(temp){
+      try{ renderApp(JSON.parse(temp)); return; }catch(e){ /* fall through to token-based load */ }
+    }
+
+    const token = localStorage.getItem('rugipo_student_token');
+    if(!token){
+      document.getElementById('loadingMsg').style.display = 'none';
+      document.getElementById('errorMsg').textContent = 'Please log in to your student portal to view your application.';
+      document.getElementById('errorMsg').style.display = 'block';
+      return;
+    }
+
+    try{
+      const res = await fetch(`${API_BASE}/applications/me`, { headers: { 'Authorization': `Bearer ${token}` } });
+      if(!res.ok){
+        document.getElementById('loadingMsg').style.display = 'none';
+        document.getElementById('errorMsg').textContent = 'Could not load your application.';
+        document.getElementById('errorMsg').style.display = 'block';
+        return;
+      }
+      renderApp(await res.json());
+    }catch(err){
+      document.getElementById('loadingMsg').style.display = 'none';
+      document.getElementById('errorMsg').textContent = 'Could not reach the server.';
+      document.getElementById('errorMsg').style.display = 'block';
+    }
+  }
+  load();
+</script>
+
+</body>
+</html>

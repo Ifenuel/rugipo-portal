@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Portal — RUGIPO</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <img src="images/rugipo-logo.jpg" alt="RUGIPO Crest" style="width:42px;height:42px;border-radius:50%;object-fit:cover;">
+    <div><div class="name">RUGIPO</div><div class="sub">Rufus Giwa Polytechnic, Owo</div></div>
+  </div>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="#" onclick="logout()" class="logout-fab">Log Out</a>
+  </nav>
+</header>
+
+<div class="student-shell">
+
+  <div class="student-header-card">
+    <div id="photoBox"><img src="images/rugipo-logo.jpg" alt="Passport photo"></div>
+    <div class="student-header-info">
+      <div id="headerName" style="font-size:20px;font-weight:700;color:var(--green-deep,#144B32);">Loading…</div>
+      <div id="headerMeta" class="note" style="margin-top:4px;"></div>
+      <div id="headerStatus" style="margin-top:10px;"></div>
+    </div>
+  </div>
+
+  <div class="student-grid">
+
+    <div class="student-card full-width">
+      <h2>My Application</h2>
+      <div id="congratsBox"></div>
+      <div id="profileBox"></div>
+    </div>
+
+    <div class="student-card" id="courseRegSection" style="display:none;">
+      <h2>Course Registration</h2>
+      <div id="courseRegBox"></div>
+    </div>
+
+    <div class="student-card">
+      <h2>Confirm a Payment</h2>
+      <p class="note">Enter any RRR to check whether it's been confirmed as paid.</p>
+      <input id="rrrCheck" placeholder="Enter RRR">
+      <button class="btn-block" onclick="confirmPayment()">Check Payment Status</button>
+      <div id="paymentResult" style="margin-top:14px;"></div>
+    </div>
+
+    <div class="student-card full-width">
+      <h2>Payment History</h2>
+      <p class="note">School fees, acceptance, letter, and hostel payments.</p>
+      <table>
+        <thead><tr><th>Purpose</th><th>Amount</th><th>Status</th><th>Date</th><th>Receipt</th></tr></thead>
+        <tbody id="historyBody"></tbody>
+      </table>
+      <div id="historyEmpty" class="note" style="display:none;">No payments yet.</div>
+      <a href="pay.html?type=hostel_unity" class="btn-block" style="display:block;text-align:center;text-decoration:none;margin-top:14px;">Pay Hostel Accommodation Fee</a>
+    </div>
+
+    <div class="student-card full-width">
+      <h2>My Results</h2>
+      <div id="resultsBox"><p class="note">Loading…</p></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const API_BASE = 'http://localhost:4000/api';
+  const token = localStorage.getItem('rugipo_student_token');
+  if(!token){ window.location.href = 'student-login.html'; }
+
+  function fmtNaira(n){ return '₦' + n.toLocaleString('en-NG'); }
+
+  async function loadPhoto(){
+    try{
+      const res = await fetch(`${API_BASE}/applications/me/photo`, { headers: { 'Authorization': `Bearer ${token}` } });
+      if(!res.ok) return;
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      document.getElementById('photoBox').innerHTML = `<img src="${url}" alt="Passport photo">`;
+    }catch(err){ /* silent */ }
+  }
+
+  async function loadProfile(){
+    try{
+      const res = await fetch(`${API_BASE}/applications/me`, { headers: { 'Authorization': `Bearer ${token}` } });
+      if(res.status === 401){ localStorage.removeItem('rugipo_student_token'); window.location.href = 'student-login.html'; return; }
+
+      const app = await res.json();
+
+      document.getElementById('headerName').textContent = app.fullName;
+      document.getElementById('headerMeta').textContent = `${app.department} (${app.faculty}) — ${app.level || '—'}${app.matricNo ? ' — ' + app.matricNo : ''}`;
+      document.getElementById('headerStatus').innerHTML = `<span class="status-pill ${app.status === 'approved' ? 'paid' : 'pending'}">${app.status}</span>`;
+
+      let congrats = '', letterSection = '';
+
+      if(app.status === 'approved'){
+        congrats = `<div class="congrats-blink">🎉 Congratulations — You've Been Admitted! 🎉</div>`;
+        letterSection = `
+          <div style="margin-top:20px;">
+            <a href="pay.html?type=letter" class="btn-block" style="display:block;text-align:center;text-decoration:none;">Pay Admission Letter Fee</a>
+            <a href="letter.html" class="btn-block" style="display:block;text-align:center;text-decoration:none;margin-top:10px;background:var(--gold);color:var(--green-deep);">Print Admission Letter</a>
+          </div>`;
+        document.getElementById('courseRegSection').style.display = 'block';
+        loadCourseRegistration();
+      } else if(app.status === 'rejected'){
+        letterSection = `<p class="note error">Your application was not successful. Contact the registrar's office for details.</p>`;
+      } else {
+        letterSection = `<p class="note">Your application is still under review. Check back later, or contact the registrar's office.</p>`;
+      }
+
+      document.getElementById('congratsBox').innerHTML = congrats;
+
+      document.getElementById('profileBox').innerHTML = `
+  <div class="ticket">
+    <div class="ticket-row"><span>Application No.</span><span>${app.applicationNo}</span></div>
+    ${app.matricNo ? `<div class="ticket-row"><span>Matric No.</span><span>${app.matricNo}</span></div>` : ''}
+    <div class="ticket-row"><span>Name</span><span>${app.fullName}</span></div>
+    <div class="ticket-row"><span>Department</span><span>${app.department}</span></div>
+    <div class="ticket-row"><span>Faculty</span><span>${app.faculty}</span></div>
+    <div class="ticket-row"><span>Gender</span><span>${app.gender || '—'}</span></div>
+    <div class="ticket-row"><span>Level</span><span>${app.level || '—'}</span></div>
+    <div class="ticket-row"><span>Status</span><span class="status-pill ${app.status === 'approved' ? 'paid' : 'pending'}">${app.status}</span></div>
+  </div>
+  <a href="application-summary.html" class="btn-block" style="display:block;text-align:center;text-decoration:none;margin-top:10px;background:transparent;border:1px solid var(--green-deep);color:var(--green-deep);">Download / Print My Application</a>
+  ${letterSection}
+`;
+    }catch(err){
+      document.getElementById('profileBox').innerHTML = '<p class="note error">Could not reach the server.</p>';
+    }
+  }
+
+  async function confirmPayment(){
+    const rrr = document.getElementById('rrrCheck').value.trim();
+    const box = document.getElementById('paymentResult');
+    if(!rrr){ box.innerHTML = '<p class="note error">Enter an RRR first.</p>'; return; }
+    box.innerHTML = '<p class="note">Checking…</p>';
+    try{
+      const res = await fetch(`${API_BASE}/payments/lookup/${encodeURIComponent(rrr)}`);
+      if(!res.ok){ box.innerHTML = '<p class="note error">No payment found for that RRR.</p>'; return; }
+      const p = await res.json();
+      box.innerHTML = `
+        <div class="ticket">
+          <div class="ticket-row"><span>Purpose</span><span>${p.purpose}</span></div>
+          <div class="ticket-row"><span>Amount</span><span>${fmtNaira(p.amount)}</span></div>
+          <div class="ticket-row"><span>Status</span><span class="status-pill ${p.status}">${p.status}</span></div>
+        </div>
+        ${p.status === 'paid' ? `<a href="receipt.html?rrr=${encodeURIComponent(p.rrr)}" class="btn-block" style="display:block;text-align:center;text-decoration:none;margin-top:10px;">Print Receipt</a>` : ''}`;
+    }catch(err){ box.innerHTML = '<p class="note error">Could not reach the server.</p>'; }
+  }
+
+  async function loadHistory(){
+    try{
+      const res = await fetch(`${API_BASE}/payments/my-history`, { headers: { 'Authorization': `Bearer ${token}` } });
+      const list = await res.json();
+      const body = document.getElementById('historyBody');
+      body.innerHTML = '';
+      document.getElementById('historyEmpty').style.display = list.length ? 'none' : 'block';
+      list.forEach(p => {
+        const tr = document.createElement('tr');
+        const receiptLink = p.status === 'paid' ? `<a href="receipt.html?rrr=${encodeURIComponent(p.rrr)}">Print</a>` : '—';
+        tr.innerHTML = `<td>${p.purpose}</td><td>${fmtNaira(p.amount)}</td><td><span class="status-pill ${p.status}">${p.status}</span></td><td>${new Date(p.date).toLocaleDateString()}</td><td>${receiptLink}</td>`;
+        body.appendChild(tr);
+      });
+    }catch(err){ /* silent */ }
+  }
+
+  async function loadCourseRegistration(){
+    const box = document.getElementById('courseRegBox');
+    try{
+      const eligRes = await fetch(`${API_BASE}/course-registrations/eligibility`, { headers: { 'Authorization': `Bearer ${token}` } });
+      const elig = await eligRes.json();
+      const res = await fetch(`${API_BASE}/course-registrations/me`, { headers: { 'Authorization': `Bearer ${token}` } });
+      const records = await res.json();
+
+      if(!Array.isArray(records) || records.length === 0){
+        box.innerHTML = elig.eligible
+          ? `<p class="note">You have not registered courses yet.</p><a href="course-register.html" class="btn-block" style="display:block;text-align:center;text-decoration:none;margin-top:10px;">Register Courses</a>`
+          : `<p class="note">Complete the following payment(s) before you can register courses: <strong>${elig.missing.join(', ')}</strong>.</p>`;
+        return;
+      }
+
+      const record = records.slice().sort((a,b) => new Date(b.dateUploaded) - new Date(a.dateUploaded))[0];
+      const canPrint = elig.eligible;
+      const courseRows = record.courses.map(c =>
+        `<tr><td>${c.code}</td><td>${c.title}</td><td>${c.units}</td></tr>`
+      ).join('');
+
+      box.innerHTML = `
+  <div class="ticket">
+    <div class="ticket-row"><span>Session</span><span>${record.session}</span></div>
+    <div class="ticket-row"><span>Level</span><span>${record.level}</span></div>
+    <div class="ticket-row"><span>Semester</span><span>${record.semester}</span></div>
+    <div class="ticket-row"><span>Total Units</span><span>${record.totalUnits}</span></div>
+    <div class="ticket-row"><span>Status</span><span class="status-pill ${record.status === 'approved' ? 'paid' : 'pending'}">${record.status}</span></div>
+  </div>
+  <table style="margin-top:10px;">
+    <thead><tr><th>Code</th><th>Title</th><th>Units</th></tr></thead>
+    <tbody>${courseRows}</tbody>
+  </table>
+  ${canPrint
+    ? `<a href="course-form.html" class="btn-block" style="display:block;text-align:center;text-decoration:none;margin-top:12px;">${record.status === 'approved' ? 'Print Approved Course Form' : 'Print Pending Course Form'}</a>`
+    : `<p class="note error" style="margin-top:10px;">Complete payment before printing: ${elig.missing.join(', ')}.</p>`}
+`;
+    }catch(err){
+      box.innerHTML = '<p class="note error">Could not reach the server.</p>';
+    }
+  }
+
+  async function loadResults(){
+    const box = document.getElementById('resultsBox');
+    try{
+      const res = await fetch(`${API_BASE}/results/me`, { headers: { 'Authorization': `Bearer ${token}` } });
+      const results = await res.json();
+      if(!Array.isArray(results) || results.length === 0){
+        box.innerHTML = '<p class="note">No results uploaded yet.</p>';
+        return;
+      }
+      box.innerHTML = results.map(r => `
+    <details class="faculty-group" style="margin-bottom:10px;">
+      <summary>${r.session} — ${r.level} — ${r.semester} Semester (GPA: ${r.gpa})</summary>
+      <table>
+        <thead><tr><th>Code</th><th>Title</th><th>Units</th><th>Score</th><th>Grade</th></tr></thead>
+        <tbody>${r.scores.map(s => `<tr><td>${s.code}</td><td>${s.title}</td><td>${s.units}</td><td>${s.score}</td><td>${s.grade}</td></tr>`).join('')}</tbody>
+      </table>
+      <p class="note" style="margin-top:8px;">Cumulative GPA as of this semester: <strong>${r.cgpa}</strong></p>
+    </details>`).join('');
+    }catch(err){ box.innerHTML = '<p class="note error">Could not reach the server.</p>'; }
+  }
+
+  function logout(){
+  localStorage.removeItem('rugipo_student_token');
+  localStorage.removeItem('rugipo_student_reg');
+  window.location.href = 'index.html';
+}
+
+  loadPhoto();
+  loadProfile();
+  loadHistory();
+  loadResults();
+</script>
+
+</body>
+</html>

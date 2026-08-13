@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Payment Receipt — RUGIPO</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+  @media print { header, .no-print { display:none !important; } }
+  .letterhead {
+    border: 2px solid var(--green-deep, #0B4A32);
+    border-radius: 10px;
+    padding: 24px;
+    position: relative;
+    background: #fff;
+  }
+  .letterhead-top {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    border-bottom: 3px solid var(--gold, #C9A227);
+    padding-bottom: 16px;
+    margin-bottom: 20px;
+  }
+  .letterhead-top img { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; }
+  .letterhead-school-name { font-size: 20px; font-weight: 700; color: var(--green-deep, #0B4A32); margin: 0; }
+  .letterhead-sub { font-size: 13px; color: #555; margin: 2px 0 0; }
+  .letterhead-doc-title {
+    text-align: center;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--green-deep, #0B4A32);
+    margin: 0 0 18px;
+  }
+  .letterhead-watermark {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%) rotate(-25deg);
+    font-size: 46px;
+    font-weight: 800;
+    color: rgba(11, 74, 50, 0.06);
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 0;
+  }
+  .letterhead-body { position: relative; z-index: 1; }
+  .letterhead-footer {
+    margin-top: 22px;
+    padding-top: 14px;
+    border-top: 1px solid #DCD8C9;
+    font-size: 12px;
+    color: #777;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<header class="no-print">
+  <div class="brand">
+    <img src="images/rugipo-logo.jpg" alt="RUGIPO Crest" style="width:42px;height:42px;border-radius:50%;object-fit:cover;">
+    <div><div class="name">RUGIPO</div><div class="sub">Rufus Giwa Polytechnic, Owo</div></div>
+  </div>
+  <nav><a href="student-dashboard.html">Back to Portal</a></nav>
+</header>
+
+<section class="pay-page card-float" style="max-width:650px;">
+  <div id="loadingMsg" class="note">Loading receipt…</div>
+
+  <div id="receiptView" style="display:none;">
+    <div class="letterhead">
+      <div class="letterhead-watermark">PAID</div>
+      <div class="letterhead-body">
+        <div class="letterhead-top">
+          <img src="images/rugipo-logo.jpg" alt="RUGIPO Crest">
+          <div>
+            <p class="letterhead-school-name">Rufus Giwa Polytechnic, Owo</p>
+            <p class="letterhead-sub">Km 46, Off Benin–Owo Expressway, P.M.B. 1019, Owo, Ondo State</p>
+            <p class="letterhead-sub">registrar@rugipo.edu.ng</p>
+          </div>
+        </div>
+        <p class="letterhead-doc-title">Official Payment Receipt</p>
+        <div class="ticket" id="receiptBody"></div>
+        <div class="letterhead-footer">This is a system-generated receipt from the RUGIPO Student Portal. No signature required.</div>
+      </div>
+    </div>
+    <button class="btn-block no-print" style="margin-top:16px;" onclick="window.print()">Print Receipt</button>
+  </div>
+
+  <p id="errorMsg" class="note error" style="display:none;"></p>
+</section>
+
+<script>
+  const API_BASE = 'http://localhost:4000/api';
+  const params = new URLSearchParams(window.location.search);
+  const rrr = params.get('rrr');
+
+  function fmtNaira(n){ return '₦' + n.toLocaleString('en-NG'); }
+
+  async function loadReceipt(){
+    if(!rrr){
+      document.getElementById('loadingMsg').style.display = 'none';
+      document.getElementById('errorMsg').textContent = 'No RRR specified.';
+      document.getElementById('errorMsg').style.display = 'block';
+      return;
+    }
+    try{
+      const res = await fetch(`${API_BASE}/payments/lookup/${encodeURIComponent(rrr)}`);
+      const p = await res.json();
+      document.getElementById('loadingMsg').style.display = 'none';
+      if(!res.ok){
+        document.getElementById('errorMsg').textContent = p.error || 'Receipt not found.';
+        document.getElementById('errorMsg').style.display = 'block';
+        return;
+      }
+      if(p.status !== 'paid'){
+        document.getElementById('errorMsg').textContent = 'This payment has not been confirmed as paid yet.';
+        document.getElementById('errorMsg').style.display = 'block';
+        return;
+      }
+      document.getElementById('receiptBody').innerHTML = `
+        <div class="ticket-row"><span>RRR</span><span>${p.rrr}</span></div>
+        <div class="ticket-row"><span>Payer</span><span>${p.name}</span></div>
+        <div class="ticket-row"><span>Reg No.</span><span>${p.reg}</span></div>
+        <div class="ticket-row"><span>Purpose</span><span>${p.purpose}</span></div>
+        <div class="ticket-row"><span>Amount</span><span>${fmtNaira(p.amount)}</span></div>
+        <div class="ticket-row"><span>Method</span><span>${(p.method||'—').toUpperCase()}</span></div>
+        <div class="ticket-row"><span>Date</span><span>${new Date(p.date).toLocaleString()}</span></div>
+        <div class="ticket-row"><span>Status</span><span class="status-pill paid">PAID</span></div>
+      `;
+      document.getElementById('receiptView').style.display = 'block';
+    }catch(err){
+      document.getElementById('loadingMsg').style.display = 'none';
+      document.getElementById('errorMsg').textContent = 'Could not reach the server.';
+      document.getElementById('errorMsg').style.display = 'block';
+    }
+  }
+  loadReceipt();
+</script>
+
+</body>
+</html>

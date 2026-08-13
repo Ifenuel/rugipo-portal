@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>All News — RUGIPO</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header>
+  <div class="brand">
+    <img src="images/rugipo-logo.jpg" alt="RUGIPO Crest" style="width:42px;height:42px;border-radius:50%;object-fit:cover;">
+    <div><div class="name">RUGIPO</div><div class="sub">Rufus Giwa Polytechnic, Owo</div></div>
+  </div>
+  <nav><a href="index.html">Home</a></nav>
+</header>
+
+<section class="news-section">
+  <h2>All News & Announcements</h2>
+  <div id="newsList" class="news-grid"></div>
+</section>
+
+<script>
+  const API_BASE = 'http://localhost:4000/api';
+  async function loadAll(){
+    const res = await fetch(`${API_BASE}/news`);
+    const list = await res.json();
+    document.getElementById('newsList').innerHTML = list.map(n => `
+      <div class="news-card">
+        <h3>${n.title}</h3>
+        ${n.body ? `<p>${n.body.slice(0,150)}${n.body.length > 150 ? '…' : ''}</p>` : ''}
+        <span class="news-date">${new Date(n.date).toLocaleDateString()}</span><br>
+        <a href="news-article.html?id=${n.id}" class="news-video-link">Read more →</a>
+      </div>`).join('');
+  }
+  loadAll();
+</script>
+</body>
+</html>

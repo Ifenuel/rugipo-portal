@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Login — RUGIPO</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="crest">RG</div>
+    <div>
+      <div class="name">RUGIPO</div>
+      <div class="sub">Rufus Giwa Polytechnic, Owo</div>
+    </div>
+  </div>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="calendar.html">Academic Calendar</a>
+    <a href="status.html">Check Status</a>
+    <a href="pay.html">Pay Fees</a>
+    <a href="student-login.html">Student Login</a>
+    <a href="admin.html">Staff Login</a>
+    <button type="button" onclick="window.location.href='index.html'" aria-label="Close" title="Close" style="background:none;border:none;font-size:22px;cursor:pointer;color:inherit;line-height:1;margin-left:10px;">&times;</button>
+  </nav>
+</header>
+
+<section class="admin-login">
+  <h2>Student Portal Login</h2>
+
+  <label for="regOrJamb">JAMB Reg No. / Matric No. / Application No.</label>
+  <input id="regOrJamb" placeholder="e.g. 20261234567AB">
+
+  <label for="password">Password</label>
+  <input id="password" type="password" placeholder="Password you set when applying">
+
+  <button class="btn-block" onclick="studentLogin()">Log In</button>
+  <p class="note">Not applied yet? <a href="apply.html">Start your application</a>.</p>
+<p class="note"><a href="forgot-password.html">Forgot your password?</a></p>
+  <p id="loginError" class="note error" style="display:none;"></p>
+</section>
+
+<script>
+  const API_BASE = 'http://localhost:4000/api';
+
+  window.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(window.location.search);
+    const reg = params.get('reg');
+    if(reg) document.getElementById('regOrJamb').value = reg;
+  });
+
+  async function studentLogin(){
+    const regOrJamb = document.getElementById('regOrJamb').value.trim();
+    const password = document.getElementById('password').value;
+    const errorBox = document.getElementById('loginError');
+    errorBox.style.display = 'none';
+
+    try{
+      const res = await fetch(`${API_BASE}/applications/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ regOrJamb, password })
+      });
+
+      if(!res.ok){
+        errorBox.textContent = 'Incorrect application number or password.';
+        errorBox.style.display = 'block';
+        return;
+      }
+
+      const data = await res.json();
+localStorage.setItem('rugipo_student_token', data.token);
+localStorage.setItem('rugipo_student_reg', data.regOrJamb);
+      window.location.href = 'student-dashboard.html';
+    }catch(err){
+      errorBox.textContent = 'Could not reach the server. Is the backend running?';
+      errorBox.style.display = 'block';
+    }
+  }
+</script>
+
+</body>
+</html>

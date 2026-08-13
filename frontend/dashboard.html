@@ -1,0 +1,1821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — RUGIPO</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <img src="images/rugipo-logo.jpg" alt="RUGIPO Crest" style="width:42px;height:42px;border-radius:50%;object-fit:cover;">
+    <div>
+      <div class="name">RUGIPO</div>
+      <div class="sub">Rufus Giwa Polytechnic, Owo</div>
+    </div>
+  </div>
+  <nav>
+    <a href="index.html">Home</a>
+  </nav>
+</header>
+
+<div class="dash-topbar">
+  <span class="dash-whoami-badge" id="whoamiBadge"></span>
+  <a href="#" class="logout-fab" onclick="logout()">⏻ Log Out</a>
+</div>
+
+<div class="dash-shell">
+  <div class="dash-sidebar" id="tabRow"></div>
+
+  <div class="dash-content">
+
+  <div id="tab-payments" style="display:none;">
+    <h2>Payments Received</h2>
+    <p class="note" id="whoami"></p>
+
+    <div class="admin-toolbar">
+      <input id="searchBox" placeholder="Search name, reg no, or RRR" oninput="renderTable()">
+      <button class="btn-small" onclick="exportCSV()">Export CSV</button>
+    </div>
+
+    <div class="stat-row">
+      <div class="stat-box"><div class="num" id="statCount">0</div><div class="lbl">Transactions</div></div>
+      <div class="stat-box"><div class="num" id="statPaid">0</div><div class="lbl">Confirmed Paid</div></div>
+      <div class="stat-box"><div class="num" id="statTotal">₦0</div><div class="lbl">Total Received</div></div>
+    </div>
+
+    <table>
+      <thead>
+        <tr><th>RRR</th><th>Payer</th><th>Reg No.</th><th>Purpose</th><th>Amount</th><th>Level</th><th>Department</th><th>Programme</th><th>Status</th><th>Date</th></tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+
+    <div id="paymentGroups"></div>
+    <div id="emptyState" class="note" style="display:none;text-align:center;padding:40px;">No payments yet.</div>
+  </div>
+
+  <div id="tab-applications" style="display:none;">
+    <h2>Admission Applications</h2>
+    <p class="note" id="roleNote"></p>
+    <div id="facultyGroups"></div>
+    <div id="appEmptyState" class="note" style="display:none;text-align:center;padding:40px;">No applications yet.</div>
+  </div>
+
+  <div id="tab-admitted" style="display:none;">
+    <h2>Manage Admission List</h2>
+    <p class="note">Only Registrar or ICT staff can add to this list. A JAMB reg number must appear here before a candidate can register on the portal.</p>
+    <p id="admittedAccessError" class="note error" style="display:none;"></p>
+    <div class="admin-toolbar" style="margin-top:14px;">
+      <input id="admittedSearchBox" placeholder="Search by name or reg no." oninput="searchAdmitted()">
+    </div>
+
+    <div id="admittedContent" style="display:none;">
+      <h3 style="margin:18px 0 10px;">Add a Single Candidate</h3>
+      <label for="singleReg">JAMB Registration Number</label>
+      <input id="singleReg" placeholder="e.g. 20261234567AB">
+
+      <label for="singleName">Full Name</label>
+      <input id="singleName" placeholder="Candidate's full name">
+
+      <label for="singleDept">Department</label>
+      <select id="singleDept" onchange="updateSingleDeptFaculty()">
+        <optgroup label="Science & Engineering">
+          <option>Computer Science</option>
+          <option>Civil Engineering</option>
+          <option>Computer Engineering</option>
+          <option>Electrical Engineering</option>
+          <option>Mechanical Engineering</option>
+          <option>Science Laboratory Technology</option>
+          <option>Statistics</option>
+        </optgroup>
+        <optgroup label="Business & Management">
+          <option>Accountancy</option>
+          <option>Business Administration</option>
+          <option>Marketing</option>
+          <option>Mass Communication</option>
+          <option>Public Administration</option>
+          <option>Office Technology and Management</option>
+        </optgroup>
+        <optgroup label="Environmental & Agricultural">
+          <option>Building Technology</option>
+          <option>Estate Management</option>
+          <option>Quantity Surveying</option>
+          <option>Agricultural Technology</option>
+          <option>Crop Production Technology</option>
+        </optgroup>
+      </select>
+      <p class="note" id="singleDeptFaculty" style="margin-top:4px;"></p>
+
+      <button class="btn-small" onclick="addSingleAdmitted()">Add Candidate</button>
+      <p id="singleAdmittedError" class="note error" style="display:none;"></p>
+      <p id="singleAdmittedSuccess" class="note" style="display:none;color:green;"></p>
+
+      <hr style="margin:22px 0;border:none;border-top:1px solid #DCD8C9;">
+
+      <h3 style="margin-bottom:10px;">Upload Admission List</h3>
+      <p class="note" style="margin-bottom:10px;">
+        Upload a <code>.csv</code> or <code>.txt</code> file with rows as <code>regOrJamb,fullName,department</code> — one per line, no header.
+        Or paste the same format directly into the box below.
+      </p>
+
+      <label for="bulkFile">Upload CSV/TXT File</label>
+      <input id="bulkFile" type="file" accept=".csv,.txt" onchange="handleBulkFile(this)">
+
+      <label for="bulkCsv" style="margin-top:14px;">Or Paste Rows Here</label>
+      <textarea id="bulkCsv" rows="6" style="width:100%;font-family:monospace;padding:10px;border:1px solid #DCD8C9;border-radius:6px;" placeholder="20261234567AB,John Adewale Okoro,Computer Science
+20269876543CD,Amaka Grace Nwosu,Accountancy"></textarea>
+
+      <button class="btn-small" style="margin-top:12px;" onclick="uploadBulkAdmitted()">Upload List</button>
+      <p id="bulkAdmittedError" class="note error" style="display:none;"></p>
+      <p id="bulkAdmittedSuccess" class="note" style="display:none;color:green;"></p>
+
+      <hr style="margin:22px 0;border:none;border-top:1px solid #DCD8C9;">
+
+      <h3 style="margin-bottom:10px;">Current Admitted List (<span id="admittedCount">0</span>)</h3>
+      <table>
+        <thead>
+          <tr><th>JAMB Reg No.</th><th>Full Name</th><th>Department</th><th>Date Added</th></tr>
+        </thead>
+        <tbody id="admittedTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="tab-jamb-control" style="display:none;">
+    <h2>JAMB Login Control</h2>
+    <p class="note">By default, students can log in with their JAMB reg number, matric number, or application number. Once a session's students have all been assigned matric numbers, you can disable JAMB-number login for that session so they use matric number only.</p>
+    <table>
+      <thead><tr><th>Admission Session</th><th>Students</th><th>JAMB Login</th><th>Action</th></tr></thead>
+      <tbody id="jambSessionsBody"></tbody>
+    </table>
+    <div id="jambEmptyState" class="note" style="display:none;text-align:center;padding:40px;">No admission sessions found yet.</div>
+  </div>
+
+  <div id="tab-staff" style="display:none;">
+    <h2>Staff Accounts</h2>
+    <p class="note">Create logins for Bursary, Finance, ICT, Course Officers (per department), and Faculty Admins (per faculty). Only the Registrar can do this.</p>
+
+    <label for="staffUsername">Username</label>
+    <input id="staffUsername" placeholder="e.g. john.courseofficer">
+
+    <label for="staffFullName">Full Name</label>
+    <input id="staffFullName" placeholder="e.g. AdeFunke Balogun">
+
+    <label for="staffPassword">Password</label>
+    <input id="staffPassword" type="password" placeholder="Set a password for this account">
+
+    <label for="staffRole">Role</label>
+    <select id="staffRole" onchange="toggleStaffDeptField()">
+      <option value="">Select role</option>
+      <option value="bursary">Bursary</option>
+      <option value="finance">Finance</option>
+      <option value="ict">ICT</option>
+      <option value="course_officer">Course Officer (per department)</option>
+      <option value="faculty_sci_eng">Faculty Admin — Science & Engineering</option>
+      <option value="faculty_business">Faculty Admin — Business & Management</option>
+      <option value="faculty_env_agric">Faculty Admin — Environmental & Agricultural</option>
+    </select>
+
+    <div id="staffDeptWrap" style="display:none;">
+      <label for="staffDept">Department (Course Officer only)</label>
+      <select id="staffDept">
+        <optgroup label="Science & Engineering">
+          <option>Computer Science</option>
+          <option>Civil Engineering</option>
+          <option>Computer Engineering</option>
+          <option>Electrical Engineering</option>
+          <option>Mechanical Engineering</option>
+          <option>Science Laboratory Technology</option>
+          <option>Statistics</option>
+        </optgroup>
+        <optgroup label="Business & Management">
+          <option>Accountancy</option>
+          <option>Business Administration</option>
+          <option>Marketing</option>
+          <option>Mass Communication</option>
+          <option>Public Administration</option>
+          <option>Office Technology and Management</option>
+        </optgroup>
+        <optgroup label="Environmental & Agricultural">
+          <option>Building Technology</option>
+          <option>Estate Management</option>
+          <option>Quantity Surveying</option>
+          <option>Agricultural Technology</option>
+          <option>Crop Production Technology</option>
+        </optgroup>
+      </select>
+    </div>
+
+    <button class="btn-block" onclick="createStaff()">Create Account</button>
+    <p id="staffCreateError" class="note error" style="display:none;"></p>
+    <p id="staffCreateSuccess" class="note" style="display:none;color:green;"></p>
+
+    <hr style="margin:22px 0;border:none;border-top:1px solid #DCD8C9;">
+
+    <h3 style="margin-bottom:10px;">Existing Staff Accounts</h3>
+    <table>
+      <thead><tr><th>Username</th><th>Full Name</th><th>Official Email</th><th>Role</th><th>Department</th><th>Action</th></tr></thead>
+      <tbody id="staffTableBody"></tbody>
+    </table>
+
+    <hr style="margin:22px 0;border:none;border-top:1px solid #DCD8C9;">
+    <h3 style="margin-bottom:10px;">Login History</h3>
+    <table>
+      <thead><tr><th>Username</th><th>Role</th><th>Result</th><th>Time</th></tr></thead>
+      <tbody id="loginHistoryBody"></tbody>
+    </table>
+  </div>
+
+  <div id="tab-session" style="display:none;">
+    <h2>Session Settings</h2>
+    <p class="note">Students can only register courses for the session set here.</p>
+    <label for="currentSessionInput">Current Academic Session</label>
+    <input id="currentSessionInput" placeholder="e.g. 2026/2027">
+    <button class="btn-small" style="margin-top:8px;" onclick="updateCurrentSession()">Save Session</button>
+    <p id="sessionSaveMsg" class="note" style="display:none;color:green;"></p>
+
+    <hr style="margin:22px 0;border:none;border-top:1px solid #DCD8C9;">
+    <h3 style="margin-bottom:10px;">End of Session</h3>
+    <p class="note">Moves every approved student up one level (ND1→ND2, etc.) and marks final-level students as graduated.</p>
+    <button class="btn-small" onclick="advanceSession()">End Session & Promote All Students</button>
+    <p id="advanceMsg" class="note" style="display:none;color:green;"></p>
+
+    <hr style="margin:22px 0;border:none;border-top:1px solid #DCD8C9;">
+    <h3 style="margin-bottom:10px;">JAMB Login</h3>
+    <p class="note">Disable JAMB-number login for a session once matric numbers are fully assigned.</p>
+    <button class="btn-small" onclick="goToTab('jamb-control')">Manage JAMB Login Control →</button>
+  </div>
+
+  <div id="tab-fees" style="display:none;">
+  <h2>Fee Schedule</h2>
+  <p class="note">These amounts apply across the whole portal — payment pages, eligibility checks, and receipts.</p>
+
+  <label for="feeAcceptance">Acceptance Fee (₦)</label>
+  <input id="feeAcceptance" type="number">
+  <label for="feeLetter">Admission Letter Fee (₦)</label>
+  <input id="feeLetter" type="number">
+  <label for="feeVerification">Result Verification Fee (₦)</label>
+  <input id="feeVerification" type="number">
+  <label for="feeTranscript">Transcript Fee (₦)</label>
+  <input id="feeTranscript" type="number">
+
+  <label style="margin-top:14px;">School Fees — Full-Time (₦)</label>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+    <input id="feeFTND1" type="number" placeholder="ND1">
+    <input id="feeFTND2" type="number" placeholder="ND2">
+    <input id="feeFTHND1" type="number" placeholder="HND1">
+    <input id="feeFTHND2" type="number" placeholder="HND2">
+  </div>
+
+  <label style="margin-top:14px;">School Fees — Part-Time (₦)</label>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+    <input id="feePTND1" type="number" placeholder="ND1">
+    <input id="feePTND2" type="number" placeholder="ND2">
+    <input id="feePTHND1" type="number" placeholder="HND1">
+    <input id="feePTHND2" type="number" placeholder="HND2">
+  </div>
+
+  <hr style="margin:22px 0;border:none;border-top:1px solid #DCD8C9;">
+  <h3 style="margin-bottom:10px;">Hostels</h3>
+  <p class="note" style="margin-bottom:10px;">Add, rename, reprice, or remove hostels — students see exactly this list when paying. No developer needed.</p>
+  <div id="hostelRows"></div>
+  <button class="btn-small" onclick="addHostelRow()">+ Add Hostel</button>
+
+  <button class="btn-small" style="margin-top:14px;" onclick="saveFees()">Save Fees</button>
+  <p id="feesSaveMsg" class="note" style="display:none;color:green;"></p>
+</div>
+
+  <div id="tab-course-officer" style="display:none;">
+    <h2>Course Officer — <span id="officerDeptLabel"></span></h2>
+
+    <div class="admin-toolbar">
+      <h3 style="margin:0;">Students in <span id="officerDeptLabel2"></span></h3>
+      <button class="btn-small" onclick="exportOfficerStudents()">Export CSV</button>
+    </div>
+    <div class="stat-row">
+      <div class="stat-box"><div class="num" id="offAdmittedCount">0</div><div class="lbl">Admitted (JAMB List)</div></div>
+      <div class="stat-box"><div class="num" id="offApprovedCount">0</div><div class="lbl">Approved Applications</div></div>
+    </div>
+    <table>
+      <thead><tr><th>Name</th><th>Stage</th><th>Programme</th><th>Gender</th><th>DOB</th><th>State of Origin</th><th>Reg/JAMB No.</th></tr></thead>
+      <tbody id="officerStudentsBody"></tbody>
+    </table>
+    <hr style="margin:22px 0;border:none;border-top:1px solid #DCD8C9;">
+
+    <h3 style="margin-bottom:10px;">Upload / Update Course List for a Level</h3>
+    <p class="note">Students in your department will only see the courses you upload here for their own session, level, and semester.</p>
+
+    <label for="offSession">Session</label>
+    <input id="offSession" placeholder="e.g. 2026/2027">
+
+    <label for="offLevel">Level</label>
+    <select id="offLevel">
+      <option value="">Select level</option>
+      <option>ND1</option><option>ND2</option><option>HND1</option><option>HND2</option>
+    </select>
+
+    <label for="offSemester">Semester</label>
+    <select id="offSemester">
+      <option value="">Select semester</option>
+      <option>First</option>
+      <option>Second</option>
+    </select>
+
+    <h4 style="margin:14px 0 8px;">Courses</h4>
+    <div id="offeringCourseRows"></div>
+    <button class="btn-small" onclick="addOfferingCourseRow()">+ Add Course</button>
+
+    <button class="btn-block" style="margin-top:16px;" onclick="submitOffering()">Save Course List</button>
+    <p id="offeringError" class="note error" style="display:none;"></p>
+    <p id="offeringSuccess" class="note" style="display:none;color:green;"></p>
+    <h4 style="margin:16px 0 8px;">Your Uploaded Course Lists (click to edit)</h4>
+    <div id="existingOfferingsBox"></div>
+
+    <hr style="margin:22px 0;border:none;border-top:1px solid #DCD8C9;">
+
+    <div class="admin-toolbar">
+      <h3 style="margin:0;">Student Course Registrations</h3>
+      <button class="btn-small" onclick="exportOfficerRegistrations()">Export CSV</button>
+    </div>
+    <table>
+      <thead><tr><th>Student</th><th>Reg No.</th><th>Session</th><th>Level</th><th>Semester</th><th>Courses</th><th>Units</th><th>Status</th><th>Action</th></tr></thead>
+      <tbody id="officerRegBody"></tbody>
+    </table>
+
+    <hr style="margin:22px 0;border:none;border-top:1px solid #DCD8C9;">
+
+    <h3 style="margin-bottom:10px;">Upload Student Result</h3>
+    <p class="note">Enter the student's registration number, then add their scores for the session/level/semester.</p>
+
+    <label for="resRegNo">Student JAMB / Reg Number</label>
+    <input id="resRegNo" placeholder="e.g. RUGIPO/ND/24/1234">
+
+    <label for="resSession">Session</label>
+    <input id="resSession" placeholder="e.g. 2026/2027">
+
+    <label for="resLevel">Level</label>
+    <select id="resLevel">
+      <option value="">Select level</option>
+      <option>ND1</option><option>ND2</option><option>HND1</option><option>HND2</option>
+    </select>
+
+    <label for="resSemester">Semester</label>
+    <select id="resSemester">
+      <option value="">Select semester</option>
+      <option>First</option>
+      <option>Second</option>
+    </select>
+
+    <h4 style="margin:14px 0 8px;">Scores</h4>
+    <button class="btn-small" onclick="loadCoursesForResult()">Load Courses for This Session/Level/Semester</button>
+    <div id="resultScoreRows" style="margin-top:10px;"></div>
+
+    <button class="btn-block" style="margin-top:16px;" onclick="submitResult()">Save Result</button>
+    <p id="resultError" class="note error" style="display:none;"></p>
+    <p id="resultSuccess" class="note" style="display:none;color:green;"></p>
+  </div>
+
+  <div id="tab-faculty-admin" style="display:none;">
+    <h2>Faculty — <span id="facultyAdminLabel"></span></h2>
+    <p class="note">You can see admitted candidates and approved applications only for departments under your faculty.</p>
+
+    <div class="admin-toolbar">
+      <h3 style="margin:0;">Overview</h3>
+      <button class="btn-small" onclick="exportFacultyAdmittedOnly()">Export Admitted Students</button>
+      <button class="btn-small" onclick="exportFacultyApprovedOnly()">Export Approved Applications</button>
+    </div>
+    <div class="stat-row">
+      <div class="stat-box"><div class="num" id="facAdmittedCount">0</div><div class="lbl">Admitted (JAMB List)</div></div>
+      <div class="stat-box"><div class="num" id="facApprovedCount">0</div><div class="lbl">Approved Applications</div></div>
+    </div>
+
+    <h3 style="margin:18px 0 10px;">Admitted Candidates (by Department)</h3>
+    <div id="facAdmittedGroups"></div>
+
+    <hr style="margin:22px 0;border:none;border-top:1px solid #DCD8C9;">
+
+    <h3 style="margin-bottom:10px;">Approved Applications (by Department)</h3>
+    <div id="facApprovedGroups"></div>
+  </div>
+
+  <div id="tab-news" style="display:none;">
+    <h2>Website Content</h2>
+
+    <div style="padding:14px;background:#f7f5ef;border-radius:8px;margin-bottom:20px;">
+      <h3 style="margin:0 0 8px;">Homepage Registration Banner</h3>
+      <p class="note" style="margin-bottom:10px;">Controls the button text and whether it's clickable on the homepage.</p>
+      <label for="admLabel">Button Text</label>
+      <input id="admLabel" placeholder="e.g. Registration Now Open, Registration Closed">
+      <label style="display:flex;align-items:center;gap:8px;margin-top:10px;">
+        <input type="checkbox" id="admActive" style="width:auto;"> Active (clickable, links to application)
+      </label>
+      <button class="btn-small" style="margin-top:10px;" onclick="saveAdmissionStatus()">Save Banner</button>
+      <p id="admError" class="note error" style="display:none;"></p>
+      <p id="admSuccess" class="note" style="display:none;color:green;"></p>
+    </div>
+
+    <p class="note">Post news, announcements, videos, and photo galleries to the homepage.</p>
+
+    <label for="newsTitle">Title (required)</label>
+    <input id="newsTitle" placeholder="e.g. Resumption Date Announced">
+
+    <label for="newsBody">Description (optional)</label>
+    <textarea id="newsBody" rows="4" style="width:100%;padding:10px;border:1px solid #DCD8C9;border-radius:6px;" placeholder="Write something about this post... (optional)"></textarea>
+
+    <label for="newsVideo">YouTube Link (optional — will play directly on the website)</label>
+    <input id="newsVideo" placeholder="https://youtube.com/watch?v=...">
+
+    <label for="newsImages">Gallery Photos (optional, up to 12)</label>
+    <input id="newsImages" type="file" accept=".jpg,.jpeg,.png,.webp" multiple>
+
+    <button class="btn-block" style="margin-top:12px;" onclick="postNews()">Post Update</button>
+    <p id="newsError" class="note error" style="display:none;"></p>
+    <p id="newsSuccess" class="note" style="display:none;color:green;"></p>
+
+    <hr style="margin:22px 0;border:none;border-top:1px solid #DCD8C9;">
+    <h3 style="margin-bottom:10px;">Posted Updates</h3>
+    <div id="newsListBox"></div>
+
+    <hr style="margin:22px 0;border:none;border-top:1px solid #DCD8C9;">
+    <h3 style="margin-bottom:10px;">Principal Officers</h3>
+    <div id="officerRows"></div>
+    <button class="btn-small" onclick="addOfficerRow()">+ Add Officer</button>
+    <button class="btn-block" style="margin-top:12px;" onclick="saveOfficers()">Save Officers</button>
+    <p id="officersSaveMsg" class="note" style="display:none;color:green;"></p>
+
+    <hr style="margin:22px 0;border:none;border-top:1px solid #DCD8C9;">
+    <h3 style="margin-bottom:10px;">Homepage Announcement Ticker</h3>
+    <p class="note">One message per line. These scroll across the homepage banner.</p>
+    <textarea id="tickerMessages" rows="4" style="width:100%;font-family:monospace;padding:10px;border:1px solid #DCD8C9;border-radius:6px;" placeholder="Admission into 2026/2027 session is ongoing — apply now.
+Course registration is open for all approved students."></textarea>
+    <button class="btn-small" style="margin-top:10px;" onclick="saveTicker()">Save Ticker Messages</button>
+    <p id="tickerSaveMsg" class="note" style="display:none;color:green;"></p>
+  </div>
+
+  <div id="tab-calendar" style="display:none;">
+    <h2>Edit Academic Calendar</h2>
+    <p class="note">This updates what everyone sees on the public Academic Calendar page.</p>
+
+    <label for="calSessionLabel">Calendar Title</label>
+    <input id="calSessionLabel" placeholder="e.g. 2026/2027 Academic Calendar">
+
+    <h3 style="margin:18px 0 10px;">First Semester</h3>
+    <div id="calFirstRows"></div>
+    <button class="btn-small" onclick="addCalRow('calFirstRows')">+ Add Row</button>
+
+    <h3 style="margin:22px 0 10px;">Second Semester</h3>
+    <div id="calSecondRows"></div>
+    <button class="btn-small" onclick="addCalRow('calSecondRows')">+ Add Row</button>
+
+    <button class="btn-block" style="margin-top:18px;" onclick="saveCalendar()">Save Calendar</button>
+    <p id="calError" class="note error" style="display:none;"></p>
+    <p id="calSuccess" class="note" style="display:none;color:green;"></p>
+  </div>
+
+  <div id="tab-student-search" style="display:none;">
+    <h2>Student Search</h2>
+    <p class="note">Search by name, JAMB reg number, matric number, or application number.</p>
+    <input id="studentSearchBox" placeholder="Type to search..." oninput="searchStudents()">
+    <div id="studentSearchResults" style="margin-top:16px;"></div>
+  </div>
+
+  </div>
+</div>
+
+<script>
+  const API_BASE = 'http://localhost:4000/api';
+
+  const token = sessionStorage.getItem('rugipo_token');
+  const username = sessionStorage.getItem('rugipo_username');
+  const role = sessionStorage.getItem('rugipo_role');
+  const department = sessionStorage.getItem('rugipo_department');
+  if(!token){
+    window.location.href = 'admin.html';
+  }
+  document.getElementById('whoami').textContent = username ? `Logged in as ${username} (${role})` : '';
+  document.getElementById('whoamiBadge').textContent = username ? `${username} · ${role}` : '';
+  document.getElementById('roleNote').textContent = 'Click a faculty to review applications and their uploaded documents. Only the registrar can approve or reject registrations.';
+
+  const FACULTY_MAP = {
+    'Computer Science':'Science & Engineering',
+    'Civil Engineering':'Science & Engineering',
+    'Computer Engineering':'Science & Engineering',
+    'Electrical Engineering':'Science & Engineering',
+    'Mechanical Engineering':'Science & Engineering',
+    'Science Laboratory Technology':'Science & Engineering',
+    'Statistics':'Science & Engineering',
+    'Accountancy':'Business & Management',
+    'Business Administration':'Business & Management',
+    'Marketing':'Business & Management',
+    'Mass Communication':'Business & Management',
+    'Public Administration':'Business & Management',
+    'Office Technology and Management':'Business & Management',
+    'Building Technology':'Environmental & Agricultural',
+    'Estate Management':'Environmental & Agricultural',
+    'Quantity Surveying':'Environmental & Agricultural',
+    'Agricultural Technology':'Environmental & Agricultural',
+    'Crop Production Technology':'Environmental & Agricultural'
+  };
+  const FACULTY_ROLE_LABELS = {
+    faculty_sci_eng: 'Science & Engineering',
+    faculty_business: 'Business & Management',
+    faculty_env_agric: 'Environmental & Agricultural'
+  };
+  const DOC_LABELS = {
+    jambLetter: 'JAMB Admission Letter',
+    olevel: "O'Level Result",
+    birthCert: 'Birth Certificate',
+    lga: 'State of Origin / LGA',
+    passport: 'Passport Photo'
+  };
+
+  function updateSingleDeptFaculty(){
+    const dept = document.getElementById('singleDept').value;
+    document.getElementById('singleDeptFaculty').textContent = dept ? `Faculty: ${FACULTY_MAP[dept]}` : '';
+  }
+
+  function programLabel(p){
+    if(p === 'part_time') return 'Part-time';
+    if(p === 'full_time') return 'Full-time';
+    return '—';
+  }
+
+  let allPayments = [], allApplications = [], allAdmitted = [], allStaff = [], officerRegistrations = [];
+  let offeringCourseRowCount = 0;
+  let currentFacAdmitted = [], currentFacApproved = [];
+  let currentOfficerAdmitted = [], currentOfficerApproved = [];
+
+  function fmtNaira(n){ return '₦' + n.toLocaleString('en-NG'); }
+
+  function downloadCSV(rows, filename){
+    const csv = rows.map(r => r.map(f => `"${String(f).replace(/"/g,'""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], {type: 'text/csv'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename; a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function logout(){
+    sessionStorage.clear();
+    window.location.href = 'index.html';
+  }
+
+  function goToTab(key){
+    const btn = document.querySelector(`.tab-btn[data-tabkey="${key}"]`);
+    if(btn) btn.click();
+  }
+
+  function buildTabs(){
+    const tabs = [];
+    if(['bursary','finance'].includes(role)) tabs.push({key:'payments', label:'Payments', group:'Finance'});
+    if(role === 'registrar') tabs.push({key:'applications', label:'Applications', group:'Admissions'});
+    if(['registrar','ict'].includes(role)) tabs.push({key:'admitted', label:'Admission List', group:'Admissions'});
+    if(role === 'registrar' || role === 'ict') tabs.push({key:'jamb-control', label:'JAMB Login Control', group:'Admissions'});
+    if(role === 'registrar') tabs.push({key:'staff', label:'Staff Accounts', group:'Administration'});
+    if(role === 'registrar') tabs.push({key:'session', label:'Session Settings', group:'Administration'});
+    if(role === 'registrar') tabs.push({key:'fees', label:'Fee Schedule', group:'Administration'});
+    if(role === 'registrar') tabs.push({key:'calendar', label:'Academic Calendar', group:'Academics'});
+    if(role === 'course_officer') tabs.push({key:'course-officer', label:'Course Registration', group:'Academics'});
+    if(role && role.startsWith('faculty_')) tabs.push({key:'faculty-admin', label:'Students', group:'Academics'});
+    if(role === 'ict' || role === 'registrar') tabs.push({key:'news', label:'Website Content', group:'Website & Content'});
+    if(role === 'ict' || role === 'course_officer' || (role && role.startsWith('faculty_'))) tabs.push({key:'student-search', label:'Student Search', group:'Student Records'});
+
+    const sidebar = document.getElementById('tabRow');
+
+    if(tabs.length === 0){
+      document.querySelector('.dash-content').innerHTML = '<p class="note">Your role does not have access to any dashboard sections yet.</p>';
+      return;
+    }
+
+    const groups = {};
+    const groupOrder = [];
+    tabs.forEach(t => {
+      if(!groups[t.group]){ groups[t.group] = []; groupOrder.push(t.group); }
+      groups[t.group].push(t);
+    });
+
+    sidebar.innerHTML = groupOrder.map(g => `
+      <div class="dash-sidebar-group">
+        ${groupOrder.length > 1 ? `<div class="dash-group-label">${g}</div>` : ''}
+        ${groups[g].map(t => `<button class="tab-btn" data-tabkey="${t.key}" onclick="showTab('${t.key}', event)">${t.label}</button>`).join('')}
+      </div>
+    `).join('');
+
+    sidebar.querySelector('.tab-btn').click();
+  }
+
+  let admittedSearchTimer;
+  function searchAdmitted(){
+    clearTimeout(admittedSearchTimer);
+    admittedSearchTimer = setTimeout(async () => {
+      const q = document.getElementById('admittedSearchBox').value.trim();
+      try{
+        const res = await fetch(`${API_BASE}/admitted/search?q=${encodeURIComponent(q)}`, { headers: { 'Authorization': `Bearer ${token}` } });
+        allAdmitted = await res.json();
+        renderAdmitted();
+      }catch(err){ /* silent */ }
+    }, 300);
+  }
+
+  function showTab(name, evt){
+    ['payments','applications','admitted','staff','session','fees','course-officer','faculty-admin','news','calendar','student-search','jamb-control'].forEach(n => {
+      const el = document.getElementById('tab-' + n);
+      if(el) el.style.display = (n === name) ? 'block' : 'none';
+    });
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    const clicked = (evt && evt.target) || (window.event && window.event.target);
+    if(clicked) clicked.classList.add('active');
+
+    if(name === 'payments') loadPayments();
+    if(name === 'applications') loadApplications();
+    if(name === 'admitted') loadAdmitted();
+    if(name === 'staff') loadStaffPanel();
+    if(name === 'session') loadSessionPanel();
+    if(name === 'fees') loadFees();
+    if(name === 'course-officer') loadCourseOfficerPanel();
+    if(name === 'faculty-admin') loadFacultyAdminPanel();
+    if(name === 'news'){ loadNewsPanel(); loadAdmissionStatusPanel(); loadOfficersForNews(); loadTicker(); }
+    if(name === 'calendar') loadCalendarPanel();
+    if(name === 'student-search') { document.getElementById('studentSearchResults').innerHTML = ''; }
+    if(name === 'jamb-control') loadJambSessions();
+  }
+
+  // ---------- PAYMENTS ----------
+  async function loadPayments(){
+    try{
+      const res = await fetch(`${API_BASE}/payments`, { headers: { 'Authorization': `Bearer ${token}` } });
+      if(res.status === 401){ logout(); return; }
+      allPayments = await res.json();
+      renderTable();
+    }catch(err){
+      document.getElementById('emptyState').textContent = 'Could not reach the server. Is the backend running?';
+      document.getElementById('emptyState').style.display = 'block';
+    }
+  }
+  function categorizePurpose(purpose){
+    if(purpose.startsWith('School Fees')) return 'School Fees';
+    if(purpose.includes('Hostel')) return 'Hostel Fees';
+    if(purpose === 'Acceptance Fee') return 'Acceptance Fees';
+    if(purpose === 'Admission Letter') return 'Admission Letter Fees';
+    if(purpose === 'Result Verification') return 'Result Verification Fees';
+    return 'Other';
+  }
+
+  function renderTable(){
+    const q = (document.getElementById('searchBox').value || '').toLowerCase();
+    const filtered = allPayments.filter(p =>
+      p.name.toLowerCase().includes(q) || p.reg.toLowerCase().includes(q) || p.rrr.toLowerCase().includes(q)
+    );
+
+    document.getElementById('emptyState').style.display = filtered.length ? 'none' : 'block';
+    document.getElementById('statCount').textContent = allPayments.length;
+    const paid = allPayments.filter(p => p.status === 'paid');
+    document.getElementById('statPaid').textContent = paid.length;
+    document.getElementById('statTotal').textContent = fmtNaira(paid.reduce((s,p) => s + p.amount, 0));
+
+    const groups = {};
+    filtered.forEach(p => {
+      const cat = categorizePurpose(p.purpose);
+      if(!groups[cat]) groups[cat] = [];
+      groups[cat].push(p);
+    });
+
+    const container = document.getElementById('paymentGroups');
+    container.innerHTML = '';
+    Object.keys(groups).forEach(cat => {
+      const groupPaid = groups[cat].filter(p => p.status === 'paid');
+      const details = document.createElement('details');
+      details.className = 'faculty-group';
+      details.open = true;
+      details.innerHTML = `<summary>${cat} — ${groups[cat].length} transaction(s), ${fmtNaira(groupPaid.reduce((s,p)=>s+p.amount,0))} confirmed</summary>`;
+      const table = document.createElement('table');
+      table.innerHTML = `<thead><tr><th>RRR</th><th>Payer</th><th>Reg No.</th><th>Purpose</th><th>Amount</th><th>Department</th><th>Programme</th><th>Status</th><th>Date</th></tr></thead>`;
+      const tbody = document.createElement('tbody');
+      groups[cat].forEach(p => {
+        const tr = document.createElement('tr');
+        const d = new Date(p.date);
+        tr.innerHTML = `<td>${p.rrr}</td><td>${p.name}</td><td>${p.reg}</td><td>${p.purpose}</td><td>${fmtNaira(p.amount)}</td><td>${p.department || '—'}</td><td>${programLabel(p.programType)}</td><td><span class="status-pill ${p.status}">${p.status}</span></td><td>${d.toLocaleDateString()}</td>`;
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody);
+      details.appendChild(table);
+      container.appendChild(details);
+    });
+  }
+  function exportCSV(){
+    const rows = [['RRR','Name','Reg No','Purpose','Amount','Level','Department','Programme','Status','Date']];
+    allPayments.forEach(p => rows.push([p.rrr, p.name, p.reg, p.purpose, p.amount, p.level || '', p.department || '', programLabel(p.programType), p.status, p.date]));
+    downloadCSV(rows, 'rugipo-payments.csv');
+  }
+
+  // ---------- APPLICATIONS ----------
+  async function loadApplications(){
+    try{
+      const res = await fetch(`${API_BASE}/applications`, { headers: { 'Authorization': `Bearer ${token}` } });
+      if(res.status === 401){ logout(); return; }
+      allApplications = await res.json();
+      renderApplications();
+    }catch(err){
+      document.getElementById('appEmptyState').textContent = 'Could not reach the server.';
+      document.getElementById('appEmptyState').style.display = 'block';
+    }
+  }
+  function statusPillClass(status){ if(status === 'approved') return 'paid'; if(status === 'rejected') return 'error'; return 'pending'; }
+  function renderApplications(){
+    const container = document.getElementById('facultyGroups');
+    container.innerHTML = '';
+    document.getElementById('appEmptyState').style.display = allApplications.length ? 'none' : 'block';
+
+    if(role === 'registrar' && allApplications.some(a => a.status === 'pending')){
+      const bulkBar = document.createElement('div');
+      bulkBar.className = 'admin-toolbar';
+      bulkBar.style.marginBottom = '14px';
+      bulkBar.innerHTML = `
+        <button class="btn-small" onclick="bulkSetStatus('approved')">Approve Selected</button>
+        <button class="btn-small" onclick="bulkSetStatus('rejected')">Reject Selected</button>
+        <span class="note" id="bulkSelectedCount" style="align-self:center;">0 selected</span>
+      `;
+      container.appendChild(bulkBar);
+    }
+
+    const faculties = {};
+    allApplications.forEach(a => {
+      const faculty = FACULTY_MAP[a.department] || 'Other';
+      if(!faculties[faculty]) faculties[faculty] = [];
+      faculties[faculty].push(a);
+    });
+
+    Object.keys(faculties).forEach(faculty => {
+      const details = document.createElement('details');
+      details.className = 'faculty-group';
+      details.innerHTML = `<summary>${faculty} (${faculties[faculty].length})</summary>`;
+
+      const table = document.createElement('table');
+      table.innerHTML = `<thead><tr><th><input type="checkbox" onclick="toggleFacultyCheckboxes(this)"></th><th>App No.</th><th>Name</th><th>Gender</th><th>DOB</th><th>Department</th><th>Reg/JAMB No.</th><th>Documents</th><th>Next of Kin</th><th>Sponsor</th><th>Status</th><th>Action</th></tr></thead>`;
+      const tbody = document.createElement('tbody');
+
+      faculties[faculty].forEach(a => {
+        const tr = document.createElement('tr');
+        const checkboxCell = a.status === 'pending'
+          ? `<input type="checkbox" class="app-checkbox" value="${a.id}">`
+          : '';
+
+        const docLinks = Object.keys(DOC_LABELS)
+          .filter(key => a.documents && a.documents[key])
+          .map(key => `<a href="#" onclick="viewDocument('${a.id}','${key}');return false;" class="doc-link">${DOC_LABELS[key]}</a>`)
+          .join('');
+
+        const nokCell = a.nextOfKin
+          ? `${a.nextOfKin.name} (${a.nextOfKin.relationship})<br><span class="note">${a.nextOfKin.phone}</span>`
+          : '<span class="note">Not provided</span>';
+
+        const sponsorCell = a.sponsor
+          ? `${a.sponsor.name} (${a.sponsor.relationship})<br><span class="note">${a.sponsor.phone}</span>`
+          : '<span class="note">Not provided</span>';
+
+        let actionCell = '—';
+        if(a.status === 'pending'){
+          actionCell = role === 'registrar'
+            ? `<button class="btn-small" onclick="setApplicationStatus('${a.id}','approved')">Approve</button>
+               <button class="btn-small" onclick="setApplicationStatus('${a.id}','rejected')">Reject</button>`
+            : '<span class="note">Registrar only</span>';
+        }
+
+        const dobDisplay = a.dob ? new Date(a.dob).toLocaleDateString() : '<span class="note">—</span>';
+        tr.innerHTML = `<td>${checkboxCell}</td><td>${a.applicationNo}</td><td>${a.fullName}</td><td>${a.gender || '—'}</td><td>${dobDisplay}</td><td>${a.department}</td><td>${a.regOrJamb}</td><td>${docLinks || '<span class="note">None</span>'}</td><td>${nokCell}</td><td>${sponsorCell}</td><td><span class="status-pill ${statusPillClass(a.status)}">${a.status}</span></td><td>${actionCell}</td>`;
+        tbody.appendChild(tr);
+      });
+
+      table.appendChild(tbody);
+      details.appendChild(table);
+      container.appendChild(details);
+    });
+  }
+  function toggleFacultyCheckboxes(headerCheckbox){
+    const table = headerCheckbox.closest('table');
+    table.querySelectorAll('.app-checkbox').forEach(cb => cb.checked = headerCheckbox.checked);
+    updateBulkCount();
+  }
+  function updateBulkCount(){
+    const count = document.querySelectorAll('.app-checkbox:checked').length;
+    const el = document.getElementById('bulkSelectedCount');
+    if(el) el.textContent = `${count} selected`;
+  }
+  document.addEventListener('change', (e) => { if(e.target.classList && e.target.classList.contains('app-checkbox')) updateBulkCount(); });
+  async function bulkSetStatus(status){
+    const ids = Array.from(document.querySelectorAll('.app-checkbox:checked')).map(cb => cb.value);
+    if(ids.length === 0){ alert('Select at least one application first.'); return; }
+    const verb = status === 'approved' ? 'Approve' : 'Reject';
+    if(!confirm(`${verb} ${ids.length} application(s)? This cannot be undone in bulk.`)) return;
+    const res = await fetch(`${API_BASE}/applications/bulk/status`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ ids, status })
+    });
+    if(!res.ok){ const err = await res.json().catch(() => ({})); alert(err.error || `Could not ${verb.toLowerCase()}.`); return; }
+    loadApplications();
+  }
+  async function viewDocument(appId, field){
+    try{
+      const res = await fetch(`${API_BASE}/applications/${appId}/documents/${field}`, { headers: { 'Authorization': `Bearer ${token}` } });
+      if(!res.ok){ alert('Document not found.'); return; }
+      const blob = await res.blob();
+      window.open(URL.createObjectURL(blob), '_blank');
+    }catch(err){ alert('Could not load document.'); }
+  }
+  async function setApplicationStatus(id, status){
+    const res = await fetch(`${API_BASE}/applications/${id}/status`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ status })
+    });
+    if(!res.ok){ const err = await res.json().catch(() => ({})); alert(err.error || 'Could not update status.'); return; }
+    loadApplications();
+  }
+
+  // ---------- ADMITTED LIST ----------
+  async function loadAdmitted(){
+    try{
+      const res = await fetch(`${API_BASE}/admitted`, { headers: { 'Authorization': `Bearer ${token}` } });
+      if(res.status === 401){ logout(); return; }
+      if(!res.ok){
+        const data = await res.json().catch(() => ({}));
+        document.getElementById('admittedAccessError').textContent = data.error || 'Access denied.';
+        document.getElementById('admittedAccessError').style.display = 'block';
+        document.getElementById('admittedContent').style.display = 'none';
+        return;
+      }
+      allAdmitted = await res.json();
+      document.getElementById('admittedAccessError').style.display = 'none';
+      document.getElementById('admittedContent').style.display = 'block';
+      renderAdmitted();
+    }catch(err){
+      document.getElementById('admittedAccessError').textContent = 'Could not reach the server.';
+      document.getElementById('admittedAccessError').style.display = 'block';
+    }
+  }
+  function renderAdmitted(){
+    document.getElementById('admittedCount').textContent = allAdmitted.length;
+    const body = document.getElementById('admittedTableBody');
+    body.innerHTML = '';
+    allAdmitted.slice().sort((a, b) => new Date(b.dateAdmitted) - new Date(a.dateAdmitted)).forEach(c => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${c.regOrJamb}</td><td>${c.fullName}</td><td>${c.department}</td><td>${new Date(c.dateAdmitted).toLocaleDateString()}</td>`;
+      body.appendChild(tr);
+    });
+  }
+  async function addSingleAdmitted(){
+    const regOrJamb = document.getElementById('singleReg').value.trim();
+    const fullName = document.getElementById('singleName').value.trim();
+    const department = document.getElementById('singleDept').value;
+    const errorBox = document.getElementById('singleAdmittedError');
+    const successBox = document.getElementById('singleAdmittedSuccess');
+    errorBox.style.display = 'none'; successBox.style.display = 'none';
+    if(!regOrJamb || !fullName || !department){ errorBox.textContent = 'Please fill in JAMB reg number, name, and department.'; errorBox.style.display = 'block'; return; }
+    try{
+      const res = await fetch(`${API_BASE}/admitted`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ regOrJamb, fullName, department }) });
+      const data = await res.json();
+      if(!res.ok){ errorBox.textContent = data.error || 'Could not add candidate.'; errorBox.style.display = 'block'; return; }
+      successBox.textContent = `Added ${data.fullName} (${data.regOrJamb}).`;
+      successBox.style.display = 'block';
+      document.getElementById('singleReg').value = ''; document.getElementById('singleName').value = '';
+      loadAdmitted();
+    }catch(err){ errorBox.textContent = 'Could not reach the server.'; errorBox.style.display = 'block'; }
+  }
+  function parseCsv(text){
+    return text.split('\n').map(l => l.trim()).filter(l => l.length > 0).map(line => {
+      const parts = line.split(',').map(p => p.trim());
+      return { regOrJamb: parts[0] || '', fullName: parts[1] || '', department: parts[2] || '' };
+    });
+  }
+  function handleBulkFile(input){
+    const file = input.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => { document.getElementById('bulkCsv').value = e.target.result; };
+    reader.onerror = () => {
+      const errorBox = document.getElementById('bulkAdmittedError');
+      errorBox.textContent = 'Could not read that file. Make sure it is a .csv or .txt file.';
+      errorBox.style.display = 'block';
+    };
+    reader.readAsText(file);
+  }
+  async function uploadBulkAdmitted(){
+    const raw = document.getElementById('bulkCsv').value;
+    const errorBox = document.getElementById('bulkAdmittedError');
+    const successBox = document.getElementById('bulkAdmittedSuccess');
+    errorBox.style.display = 'none'; successBox.style.display = 'none';
+    const candidates = parseCsv(raw);
+    if(candidates.length === 0){ errorBox.textContent = 'Paste rows or upload a file with at least one row before uploading.'; errorBox.style.display = 'block'; return; }
+    try{
+      const res = await fetch(`${API_BASE}/admitted/bulk`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ candidates }) });
+      const data = await res.json();
+      if(!res.ok){ errorBox.textContent = data.error || 'Bulk upload failed.'; errorBox.style.display = 'block'; return; }
+      let msg = `Added ${data.addedCount} candidate(s).`;
+      if(data.skippedCount > 0) msg += ` Skipped ${data.skippedCount} (already on list or missing fields).`;
+      successBox.textContent = msg; successBox.style.display = 'block';
+      document.getElementById('bulkCsv').value = '';
+      document.getElementById('bulkFile').value = '';
+      loadAdmitted();
+    }catch(err){ errorBox.textContent = 'Could not reach the server.'; errorBox.style.display = 'block'; }
+  }
+
+  // ---------- JAMB LOGIN CONTROL ----------
+  async function loadJambSessions(){
+    try{
+      const res = await fetch(`${API_BASE}/applications/admission-sessions`, { headers: { 'Authorization': `Bearer ${token}` } });
+      const sessions = await res.json();
+      const body = document.getElementById('jambSessionsBody');
+      body.innerHTML = '';
+      document.getElementById('jambEmptyState').style.display = sessions.length ? 'none' : 'block';
+
+      sessions.forEach(s => {
+  const tr = document.createElement('tr');
+  const statusLabel = s.jambDisabled ? 'Disabled (matric no. only)' : 'Enabled';
+  const actionLabel = s.jambDisabled ? 'Re-enable JAMB Login' : 'Disable JAMB Login';
+  const safeSession = s.session.replace(/'/g, "\\'");
+  tr.innerHTML = `
+    <td>${s.session}</td>
+    <td>${s.studentCount}</td>
+    <td><span class="status-pill ${s.jambDisabled ? 'error' : 'paid'}">${statusLabel}</span></td>
+    <td>
+      <button class="btn-small" onclick="toggleJambSession('${safeSession}', ${!s.jambDisabled})">${actionLabel}</button>
+      <input class="rename-session-input" placeholder="New session name" style="width:140px;margin-left:6px;">
+      <button class="btn-small" onclick="renameJambSession('${safeSession}', this)">Rename</button>
+    </td>`;
+  body.appendChild(tr);
+});
+    }catch(err){
+      document.getElementById('jambEmptyState').textContent = 'Could not reach the server.';
+      document.getElementById('jambEmptyState').style.display = 'block';
+    }
+  }
+
+  async function toggleJambSession(session, disabled){
+    const verb = disabled ? 'disable' : 're-enable';
+    if(!confirm(`Are you sure you want to ${verb} JAMB reg number login for the ${session} session?`)) return;
+
+    const res = await fetch(`${API_BASE}/applications/jamb-toggle`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ session, disabled })
+    });
+    if(!res.ok){ const err = await res.json().catch(() => ({})); alert(err.error || `Could not ${verb}.`); return; }
+    loadJambSessions();
+  }
+  async function renameJambSession(fromSession, btn){
+  const input = btn.previousElementSibling;
+  const toSession = input.value.trim();
+  if(!toSession){ alert('Enter the new session name first.'); return; }
+  if(!confirm(`Rename "${fromSession}" to "${toSession}" for all its students? This updates every affected student's record.`)) return;
+
+  const res = await fetch(`${API_BASE}/applications/assign-session`, {
+    method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+    body: JSON.stringify({ fromSession, toSession })
+  });
+  const data = await res.json();
+  if(!res.ok){ alert(data.error || 'Could not rename session.'); return; }
+  alert(`Renamed. ${data.updated} student record(s) updated.`);
+  loadJambSessions();
+}
+
+  // ---------- STAFF ACCOUNTS ----------
+  function toggleStaffDeptField(){
+    const roleVal = document.getElementById('staffRole').value;
+    document.getElementById('staffDeptWrap').style.display = roleVal === 'course_officer' ? 'block' : 'none';
+  }
+  async function createStaff(){
+    const staffUsername = document.getElementById('staffUsername').value.trim();
+    const staffFullName = document.getElementById('staffFullName').value.trim();
+    const staffPassword = document.getElementById('staffPassword').value;
+    const staffRole = document.getElementById('staffRole').value;
+    const staffDept = document.getElementById('staffDept').value;
+    const errorBox = document.getElementById('staffCreateError');
+    const successBox = document.getElementById('staffCreateSuccess');
+    errorBox.style.display = 'none'; successBox.style.display = 'none';
+
+    if(!staffUsername || !staffFullName || !staffPassword || !staffRole){ errorBox.textContent = 'Full name, username, password, and role are required.'; errorBox.style.display = 'block'; return; }
+    if(staffRole === 'course_officer' && !staffDept){ errorBox.textContent = 'Select a department for the course officer.'; errorBox.style.display = 'block'; return; }
+
+    try{
+      const body = { username: staffUsername, fullName: staffFullName, password: staffPassword, role: staffRole };
+      if(staffRole === 'course_officer') body.department = staffDept;
+      const res = await fetch(`${API_BASE}/staff`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(body) });
+      const data = await res.json();
+      if(!res.ok){ errorBox.textContent = data.error || 'Could not create account.'; errorBox.style.display = 'block'; return; }
+      successBox.textContent = `Created account for ${data.username} (${data.officialEmail}).`;
+      successBox.style.display = 'block';
+      document.getElementById('staffUsername').value = '';
+      document.getElementById('staffFullName').value = '';
+      document.getElementById('staffPassword').value = '';
+      document.getElementById('staffRole').value = '';
+      toggleStaffDeptField();
+      loadStaffPanel();
+    }catch(err){ errorBox.textContent = 'Could not reach the server.'; errorBox.style.display = 'block'; }
+  }
+
+  async function resetStaffPassword(username){
+    const newPassword = prompt(`Enter a new password for ${username} (min 8 characters, letters + numbers):`);
+    if(!newPassword) return;
+    const res = await fetch(`${API_BASE}/staff/${encodeURIComponent(username)}/reset-password`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ newPassword })
+    });
+    const data = await res.json();
+    if(!res.ok){ alert(data.error || 'Could not reset password.'); return; }
+    alert(`Password reset for ${username}. Their old password no longer works.`);
+  }
+  async function loadStaffPanel(){
+    try{
+      const res = await fetch(`${API_BASE}/staff`, { headers: { 'Authorization': `Bearer ${token}` } });
+      allStaff = await res.json();
+      const body = document.getElementById('staffTableBody');
+      body.innerHTML = '';
+      allStaff.forEach(s => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${s.username}</td><td>${s.fullName || '—'}</td><td>${s.officialEmail || '—'}</td><td>${s.role}</td><td>${s.department || '—'}</td><td><button class="btn-small" onclick="resetStaffPassword('${s.username}')">Reset Password</button></td>`;
+        body.appendChild(tr);
+      });
+
+      const histRes = await fetch(`${API_BASE}/staff/login-history`, { headers: { 'Authorization': `Bearer ${token}` } });
+      const history = await histRes.json();
+      const histBody = document.getElementById('loginHistoryBody');
+      histBody.innerHTML = '';
+      history.slice(0, 100).forEach(h => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${h.username}</td><td>${h.role}</td><td>${h.success ? 'Success' : 'Failed'}</td><td>${new Date(h.time).toLocaleString()}</td>`;
+        histBody.appendChild(tr);
+      });
+    }catch(err){ /* silent */ }
+  }
+
+  // ---------- SESSION SETTINGS ----------
+  async function loadSessionPanel(){
+    try{
+      const sRes = await fetch(`${API_BASE}/settings/current-session`);
+      const sData = await sRes.json();
+      document.getElementById('currentSessionInput').value = sData.currentSession || '';
+    }catch(err){ /* silent */ }
+  }
+  async function updateCurrentSession(){
+    const val = document.getElementById('currentSessionInput').value.trim();
+    if(!val) return;
+    const res = await fetch(`${API_BASE}/settings/current-session`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ currentSession: val })
+    });
+    const msg = document.getElementById('sessionSaveMsg');
+    if(res.ok){ msg.textContent = 'Session updated.'; msg.style.display = 'block'; }
+  }
+  async function advanceSession(){
+    const val = document.getElementById('currentSessionInput').value.trim();
+    if(!val) return;
+    if(!confirm(`This will move every approved student up one level (ND1→ND2, etc.) and set the current session to ${val}. Continue?`)) return;
+    const res = await fetch(`${API_BASE}/settings/advance-session`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ newSession: val })
+    });
+    const data = await res.json();
+    const msg = document.getElementById('advanceMsg');
+    if(res.ok){ msg.textContent = `Promoted ${data.promoted} student(s), ${data.graduated} graduated. Session set to ${data.currentSession}.`; msg.style.display = 'block'; }
+  }
+
+  // ---------- FEE SCHEDULE ----------
+  function addHostelRow(label='', amount=''){
+    const wrap = document.getElementById('hostelRows');
+    const div = document.createElement('div');
+    div.className = 'hostel-row';
+    div.style.cssText = 'display:flex;gap:8px;margin-bottom:8px;align-items:center;';
+    div.innerHTML = `
+      <input placeholder="Hostel name" class="hostel-label" style="flex:2;" value="${label}">
+      <input placeholder="Amount" type="number" class="hostel-amount" style="width:140px;" value="${amount}">
+      <button type="button" class="btn-small" onclick="this.parentElement.remove()">Remove</button>
+    `;
+    wrap.appendChild(div);
+  }
+  
+  async function loadFees(){
+    const fRes = await fetch(`${API_BASE}/settings/fees`);
+    const fees = await fRes.json();
+    document.getElementById('feeAcceptance').value = fees.acceptance || '';
+    document.getElementById('feeLetter').value = fees.letter || '';
+    document.getElementById('feeVerification').value = fees.verification || '';
+    document.getElementById('feeTranscript').value = fees.transcript || '';
+
+    const ft = fees.schoolFees?.full_time || {};
+    const pt = fees.schoolFees?.part_time || {};
+    document.getElementById('feeFTND1').value = ft.ND1 || '';
+    document.getElementById('feeFTND2').value = ft.ND2 || '';
+    document.getElementById('feeFTHND1').value = ft.HND1 || '';
+    document.getElementById('feeFTHND2').value = ft.HND2 || '';
+    document.getElementById('feePTND1').value = pt.ND1 || '';
+    document.getElementById('feePTND2').value = pt.ND2 || '';
+    document.getElementById('feePTHND1').value = pt.HND1 || '';
+    document.getElementById('feePTHND2').value = pt.HND2 || '';
+
+    document.getElementById('hostelRows').innerHTML = '';
+    const hostels = fees.hostels || {};
+    const keys = Object.keys(hostels);
+    if(keys.length === 0){
+      addHostelRow();
+    } else {
+      keys.forEach(k => addHostelRow(hostels[k].label, hostels[k].amount));
+    }
+  }
+
+  function slugifyHostel(label, usedKeys){
+    let base = 'hostel_' + label.trim().toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'');
+    if(!base || base === 'hostel_') base = 'hostel_' + Date.now();
+    let key = base, n = 1;
+    while(usedKeys.has(key)){ key = `${base}_${n}`; n++; }
+    usedKeys.add(key);
+    return key;
+  }
+  async function saveFees(){
+    const usedKeys = new Set();
+    const hostels = {};
+    Array.from(document.querySelectorAll('#hostelRows .hostel-row')).forEach(row => {
+      const label = row.querySelector('.hostel-label').value.trim();
+      const amount = Number(row.querySelector('.hostel-amount').value);
+      if(!label || !amount) return;
+      hostels[slugifyHostel(label, usedKeys)] = { label, amount };
+    });
+
+    const body = {
+      acceptance: Number(document.getElementById('feeAcceptance').value),
+      letter: Number(document.getElementById('feeLetter').value),
+      verification: Number(document.getElementById('feeVerification').value),
+      transcript: Number(document.getElementById('feeTranscript').value),
+      schoolFees: {
+        full_time: {
+          ND1: Number(document.getElementById('feeFTND1').value),
+          ND2: Number(document.getElementById('feeFTND2').value),
+          HND1: Number(document.getElementById('feeFTHND1').value),
+          HND2: Number(document.getElementById('feeFTHND2').value)
+        },
+        part_time: {
+          ND1: Number(document.getElementById('feePTND1').value),
+          ND2: Number(document.getElementById('feePTND2').value),
+          HND1: Number(document.getElementById('feePTHND1').value),
+          HND2: Number(document.getElementById('feePTHND2').value)
+        }
+      },
+      hostels
+    };
+
+    const res = await fetch(`${API_BASE}/settings/fees`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    if(!res.ok){ alert(data.error || 'Could not save fees.'); return; }
+    const msg = document.getElementById('feesSaveMsg'); msg.textContent = 'Fees updated.'; msg.style.display = 'block';
+  }
+
+  // ---------- OFFICERS (shared helper, used by Website Content and ICT's own tab) ----------
+  function addOfficerRow(initials='', name='', role='', containerId='officerRows', photo=''){
+  const wrap = document.getElementById(containerId);
+  const div = document.createElement('div');
+  div.className = 'officer-row';
+  div.dataset.photo = photo || '';
+  div.style.cssText = 'display:flex;gap:8px;margin-bottom:8px;align-items:center;';
+  const photoSrc = photo ? `http://localhost:4000/uploads/officers/${photo}` : '';
+  div.innerHTML = `
+    <div style="width:44px;height:44px;border-radius:50%;overflow:hidden;background:#eee;flex-shrink:0;display:flex;align-items:center;justify-content:center;">
+      <img class="off-photo-preview" src="${photoSrc}" style="width:100%;height:100%;object-fit:cover;${photo ? '' : 'display:none;'}">
+      <span class="off-photo-placeholder" style="font-size:10px;color:#999;${photo ? 'display:none;' : ''}">Photo</span>
+    </div>
+    <input type="file" accept=".jpg,.jpeg,.png,.webp" class="off-photo-input" style="width:110px;font-size:11px;" onchange="handleOfficerPhoto(this)">
+    <input placeholder="Initials e.g. OSL" class="off-initials" style="width:80px;" value="${initials}">
+    <input placeholder="Full name" class="off-name" style="flex:2;" value="${name}">
+    <input placeholder="Role e.g. Ag. Rector" class="off-role" style="flex:2;" value="${role}">
+    <button class="btn-small" onclick="this.parentElement.remove()">✕</button>
+  `;
+  wrap.appendChild(div);
+}
+
+async function handleOfficerPhoto(input){
+  const file = input.files[0];
+  if(!file) return;
+  const row = input.closest('.officer-row');
+  const formData = new FormData();
+  formData.append('photo', file);
+  try{
+    const res = await fetch(`${API_BASE}/settings/officer-photo`, {
+      method: 'POST', headers: { 'Authorization': `Bearer ${token}` }, body: formData
+    });
+    const data = await res.json();
+    if(!res.ok){ alert(data.error || 'Could not upload photo.'); return; }
+    row.dataset.photo = data.filename;
+    const preview = row.querySelector('.off-photo-preview');
+    const placeholder = row.querySelector('.off-photo-placeholder');
+    preview.src = `http://localhost:4000/uploads/officers/${data.filename}`;
+    preview.style.display = 'block';
+    placeholder.style.display = 'none';
+  }catch(err){ alert('Could not reach the server.'); }
+}
+  async function saveOfficers(containerId='officerRows'){
+  const officers = Array.from(document.querySelectorAll(`#${containerId} .officer-row`)).map(row => ({
+    initials: row.querySelector('.off-initials').value.trim(),
+    name: row.querySelector('.off-name').value.trim(),
+    role: row.querySelector('.off-role').value.trim(),
+    photo: row.dataset.photo || ''
+  })).filter(o => o.name);
+
+  const res = await fetch(`${API_BASE}/settings/officers`, {
+    method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+    body: JSON.stringify({ officers })
+  });
+  const msgId = containerId === 'officerRowsIct' ? 'officersSaveMsgIct' : 'officersSaveMsg';
+  if(res.ok){ const msg = document.getElementById(msgId); if(msg){ msg.textContent = 'Officers updated.'; msg.style.display = 'block'; } }
+}
+
+  async function loadOfficersForNews(){
+  const oRes = await fetch(`${API_BASE}/settings/officers`);
+  const officers = await oRes.json();
+  document.getElementById('officerRows').innerHTML = '';
+  officers.forEach(o => addOfficerRow(o.initials, o.name, o.role, 'officerRows', o.photo));
+  if(officers.length === 0) addOfficerRow('', '', '', 'officerRows', '');
+}
+
+  // ---------- TICKER ----------
+  async function loadTicker(){
+    try{
+      const res = await fetch(`${API_BASE}/settings/ticker`, { headers: { 'Authorization': `Bearer ${token}` } });
+      const messages = await res.json();
+      document.getElementById('tickerMessages').value = messages.join('\n');
+    }catch(err){ /* silent */ }
+  }
+
+  async function saveTicker(){
+    const raw = document.getElementById('tickerMessages').value;
+    const messages = raw.split('\n').map(m => m.trim()).filter(m => m.length > 0);
+    try{
+      const res = await fetch(`${API_BASE}/settings/ticker`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ messages })
+      });
+      if(!res.ok){ throw new Error('Save failed'); }
+      const msg = document.getElementById('tickerSaveMsg');
+      msg.textContent = 'Ticker messages saved.';
+      msg.style.display = 'block';
+      setTimeout(() => msg.style.display = 'none', 3000);
+    }catch(err){
+      alert('Could not save ticker messages. Try again.');
+    }
+  }
+
+  // ---------- STUDENT SEARCH ----------
+  let studentSearchTimer;
+  function searchStudents(){
+    clearTimeout(studentSearchTimer);
+    studentSearchTimer = setTimeout(async () => {
+      const q = document.getElementById('studentSearchBox').value.trim();
+      const box = document.getElementById('studentSearchResults');
+      if(!q){ box.innerHTML = ''; return; }
+      try{
+        const res = await fetch(`${API_BASE}/applications/search?q=${encodeURIComponent(q)}`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const results = await res.json();
+        if(results.length === 0){ box.innerHTML = '<p class="note">No students found.</p>'; return; }
+        box.innerHTML = results.map(renderStudentCard).join('');
+      }catch(err){ box.innerHTML = '<p class="note error">Could not reach the server.</p>'; }
+    }, 300);
+  }
+
+  function renderStudentCard(a){
+    const canCorrect = role === 'ict' || role === 'registrar';
+    return `
+      <div class="ticket" style="margin-bottom:16px;text-align:left;">
+        <div class="ticket-row"><span>Name</span><span>${a.fullName}</span></div>
+        <div class="ticket-row"><span>Department</span><span>${a.department}</span></div>
+        <div class="ticket-row"><span>Level</span><span>${a.level || '—'}</span></div>
+        <div class="ticket-row"><span>Programme</span><span>${programLabel(a.programType)}</span></div>
+        <div class="ticket-row"><span>JAMB Reg No.</span><span>${a.regOrJamb}</span></div>
+        <div class="ticket-row"><span>Matric No.</span><span>${a.matricNo || 'Not yet assigned'}</span></div>
+        <div class="ticket-row"><span>Status</span><span class="status-pill ${statusPillClass(a.status)}">${a.status}</span></div>
+        <div class="ticket-row"><span>Email</span><span>${a.email}</span></div>
+        <div class="ticket-row"><span>Phone</span><span>${a.phone}</span></div>
+        <div class="ticket-row"><span>Next of Kin</span><span>${a.nextOfKin ? `${a.nextOfKin.name} (${a.nextOfKin.relationship}) — ${a.nextOfKin.phone}` : '—'}</span></div>
+        <div class="ticket-row"><span>Sponsor</span><span>${a.sponsor ? `${a.sponsor.name} (${a.sponsor.relationship}) — ${a.sponsor.phone}` : '—'}</span></div>
+        ${canCorrect ? `<button class="btn-small" style="margin-top:10px;" onclick="openCorrectionForm('${a.id}')">Correct Details</button>
+        <div id="correctBox-${a.id}" style="margin-top:10px;display:none;"></div>` : ''}
+      </div>`;
+  }
+
+  function openCorrectionForm(id){
+    const box = document.getElementById(`correctBox-${id}`);
+    if(box.style.display === 'block'){ box.style.display = 'none'; return; }
+    const card = box.closest('.ticket');
+    const name = card.querySelector('.ticket-row span:nth-child(2)').textContent;
+    box.innerHTML = `
+      <label>Full Name</label>
+      <input id="corr-name-${id}" value="${name}">
+      <label>Email</label>
+      <input id="corr-email-${id}">
+      <label>Phone</label>
+      <input id="corr-phone-${id}">
+      <button class="btn-small" style="margin-top:8px;" onclick="submitCorrection('${id}')">Save Correction</button>
+      <p id="corr-msg-${id}" class="note" style="display:none;"></p>
+    `;
+    box.style.display = 'block';
+  }
+
+  async function submitCorrection(id){
+    const fullName = document.getElementById(`corr-name-${id}`).value.trim();
+    const email = document.getElementById(`corr-email-${id}`).value.trim();
+    const phone = document.getElementById(`corr-phone-${id}`).value.trim();
+    const body = {};
+    if(fullName) body.fullName = fullName;
+    if(email) body.email = email;
+    if(phone) body.phone = phone;
+
+    const res = await fetch(`${API_BASE}/applications/${id}/correct`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    const msg = document.getElementById(`corr-msg-${id}`);
+    if(!res.ok){ msg.textContent = data.error || 'Could not save.'; msg.style.display = 'block'; return; }
+    msg.textContent = 'Saved.'; msg.style.color = 'green'; msg.style.display = 'block';
+    searchStudents();
+  }
+
+  // ---------- COURSE OFFICER ----------
+  function loadCourseOfficerPanel(){
+    document.getElementById('officerDeptLabel').textContent = department || '';
+    document.getElementById('officerDeptLabel2').textContent = department || '';
+    document.getElementById('offeringCourseRows').innerHTML = '';
+    addOfferingCourseRow();
+    loadOfficerRegistrations();
+    loadOfficerStudents();
+    loadExistingOfferings();
+  }
+
+  let currentOfferings = [];
+
+  function addOfferingCourseRow(){
+    const wrap = document.getElementById('offeringCourseRows');
+    const div = document.createElement('div');
+    div.className = 'course-row';
+    div.style.cssText = 'display:flex;gap:8px;margin-bottom:8px;align-items:center;';
+    div.innerHTML = `
+      <input placeholder="Code" class="off-code" style="flex:1;">
+      <input placeholder="Course Title" class="off-title" style="flex:2;">
+      <input placeholder="Units" type="number" min="1" class="off-units" style="width:80px;">
+      <button type="button" class="btn-small" onclick="this.parentElement.remove()">Remove</button>
+    `;
+    wrap.appendChild(div);
+  }
+
+  async function loadExistingOfferings(){
+    const res = await fetch(`${API_BASE}/course-offerings`, { headers: { 'Authorization': `Bearer ${token}` } });
+    currentOfferings = await res.json();
+    const box = document.getElementById('existingOfferingsBox');
+    box.innerHTML = '';
+    currentOfferings.forEach(o => {
+      const div = document.createElement('div');
+      div.style.cssText = 'padding:8px 0;border-bottom:1px solid #eee;cursor:pointer;';
+      div.innerHTML = `<a href="#" onclick="editOffering('${o.id}');return false;">${o.session} — ${o.level} — ${o.semester} semester (${o.courses.length} courses)</a>`;
+      box.appendChild(div);
+    });
+  }
+
+  function editOffering(id){
+    const o = currentOfferings.find(x => x.id === id);
+    if(!o) return;
+    document.getElementById('offSession').value = o.session;
+    document.getElementById('offLevel').value = o.level;
+    document.getElementById('offSemester').value = o.semester;
+    document.getElementById('offeringCourseRows').innerHTML = '';
+    o.courses.forEach(c => {
+      const wrap = document.getElementById('offeringCourseRows');
+      const div = document.createElement('div');
+      div.className = 'course-row';
+      div.style.cssText = 'display:flex;gap:8px;margin-bottom:8px;align-items:center;';
+      div.innerHTML = `
+        <input placeholder="Code" class="off-code" style="flex:1;" value="${c.code}">
+        <input placeholder="Course Title" class="off-title" style="flex:2;" value="${c.title}">
+        <input placeholder="Units" type="number" min="1" class="off-units" style="width:80px;" value="${c.units}">
+        <button type="button" class="btn-small" onclick="this.parentElement.remove()">Remove</button>
+      `;
+      wrap.appendChild(div);
+    });
+    window.scrollTo({ top: document.getElementById('offSession').offsetTop - 100, behavior: 'smooth' });
+  }
+
+  async function submitOffering(){
+    const errorBox = document.getElementById('offeringError');
+    const successBox = document.getElementById('offeringSuccess');
+    errorBox.style.display = 'none'; successBox.style.display = 'none';
+
+    const session = document.getElementById('offSession').value.trim();
+    const level = document.getElementById('offLevel').value;
+    const semester = document.getElementById('offSemester').value;
+    const rows = document.querySelectorAll('#offeringCourseRows .course-row');
+    const courses = Array.from(rows).map(r => ({
+      code: r.querySelector('.off-code').value.trim(),
+      title: r.querySelector('.off-title').value.trim(),
+      units: r.querySelector('.off-units').value
+    })).filter(c => c.code && c.title && c.units);
+
+    if(!session || !level || !semester || courses.length === 0){
+      errorBox.textContent = 'Session, level, semester, and at least one complete course row are required.';
+      errorBox.style.display = 'block';
+      return;
+    }
+
+    try{
+      const res = await fetch(`${API_BASE}/course-offerings`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ session, level, semester, courses })
+      });
+      const data = await res.json();
+      if(!res.ok){ errorBox.textContent = data.error || 'Could not save course list.'; errorBox.style.display = 'block'; return; }
+      successBox.textContent = `Saved ${courses.length} course(s) for ${level}, ${semester} semester, ${session}.`;
+      successBox.style.display = 'block';
+      loadExistingOfferings();
+    }catch(err){ errorBox.textContent = 'Could not reach the server.'; errorBox.style.display = 'block'; }
+  }
+
+  async function loadOfficerRegistrations(){
+    try{
+      const res = await fetch(`${API_BASE}/course-registrations`, { headers: { 'Authorization': `Bearer ${token}` } });
+      officerRegistrations = await res.json();
+      const body = document.getElementById('officerRegBody');
+      body.innerHTML = '';
+      officerRegistrations.forEach(r => {
+        const tr = document.createElement('tr');
+        const courseList = r.courses.map(c => c.code).join(', ');
+        let action = '';
+        if(r.status === 'pending'){
+          action = `
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <input placeholder="Code" class="carry-code" data-id="${r.id}" style="width:70px;">
+              <input placeholder="Title" class="carry-title" data-id="${r.id}" style="width:110px;">
+              <input placeholder="Units" type="number" class="carry-units" data-id="${r.id}" style="width:55px;">
+              <button class="btn-small" onclick="addCarryoverCourse('${r.id}')">Add Course</button>
+              <button class="btn-small" onclick="approveCourseForm('${r.id}')">Approve</button>
+            </div>`;
+        } else {
+          action = '<span class="note">Approved</span>';
+        }
+        tr.innerHTML = `<td>${r.fullName}</td><td>${r.regOrJamb}</td><td>${r.session}</td><td>${r.level}</td><td>${r.semester}</td><td>${courseList}</td><td>${r.totalUnits}</td><td><span class="status-pill ${r.status === 'approved' ? 'paid' : 'pending'}">${r.status}</span></td><td>${action}</td>`;
+        body.appendChild(tr);
+      });
+    }catch(err){ /* silent */ }
+  }
+
+  async function addCarryoverCourse(id){
+    const code = document.querySelector(`.carry-code[data-id="${id}"]`).value.trim();
+    const title = document.querySelector(`.carry-title[data-id="${id}"]`).value.trim();
+    const units = document.querySelector(`.carry-units[data-id="${id}"]`).value;
+    if(!code || !title || !units){ alert('Fill in code, title, and units for the carryover course.'); return; }
+
+    const res = await fetch(`${API_BASE}/course-registrations/${id}/add-course`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ code, title, units })
+    });
+    if(!res.ok){ const err = await res.json().catch(() => ({})); alert(err.error || 'Could not add course.'); return; }
+    loadOfficerRegistrations();
+  }
+
+  async function approveCourseForm(id){
+    if(!confirm('Approve this course registration? The student will then be able to print the approved form.')) return;
+    const res = await fetch(`${API_BASE}/course-registrations/${id}/approve`, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}` } });
+    if(!res.ok){ const err = await res.json().catch(() => ({})); alert(err.error || 'Could not approve.'); return; }
+    loadOfficerRegistrations();
+  }
+
+  function exportOfficerRegistrations(){
+    const rows = [['Student','Reg No','Session','Level','Semester','Courses','Total Units','Status']];
+    officerRegistrations.forEach(r => rows.push([r.fullName, r.regOrJamb, r.session, r.level, r.semester, r.courses.map(c=>c.code).join('; '), r.totalUnits, r.status]));
+    downloadCSV(rows, 'rugipo-course-registrations.csv');
+  }
+
+  function loadCoursesForResult(){
+    const session = document.getElementById('resSession').value.trim();
+    const level = document.getElementById('resLevel').value;
+    const semester = document.getElementById('resSemester').value;
+    const errorBox = document.getElementById('resultError');
+    errorBox.style.display = 'none';
+
+    if(!session || !level || !semester){
+      errorBox.textContent = 'Select session, level, and semester first.';
+      errorBox.style.display = 'block';
+      return;
+    }
+
+    const offering = currentOfferings.find(o => o.session === session && o.level === level && o.semester === semester);
+    if(!offering){
+      errorBox.textContent = 'No course list uploaded for this session/level/semester yet — upload it above first.';
+      errorBox.style.display = 'block';
+      return;
+    }
+
+    const wrap = document.getElementById('resultScoreRows');
+    wrap.innerHTML = '';
+    offering.courses.forEach(c => {
+      const row = document.createElement('div');
+      row.className = 'result-row';
+      row.dataset.code = c.code;
+      row.style.cssText = 'display:flex;gap:10px;margin-bottom:8px;align-items:center;';
+      row.innerHTML = `
+        <span style="flex:1;">${c.code} — ${c.title} (${c.units} units)</span>
+        <input class="res-score" type="number" min="0" max="100" placeholder="Score" style="width:100px;">
+      `;
+      wrap.appendChild(row);
+    });
+  }
+
+  async function submitResult(){
+    const regOrJamb = document.getElementById('resRegNo').value.trim();
+    const session = document.getElementById('resSession').value.trim();
+    const level = document.getElementById('resLevel').value;
+    const semester = document.getElementById('resSemester').value;
+    const errorBox = document.getElementById('resultError');
+    const successBox = document.getElementById('resultSuccess');
+    errorBox.style.display = 'none';
+    successBox.style.display = 'none';
+
+    const scores = Array.from(document.querySelectorAll('#resultScoreRows .result-row'))
+      .map(row => ({
+        code: row.dataset.code,
+        score: Number(row.querySelector('.res-score').value)
+      }))
+      .filter(s => s.code && !isNaN(s.score) && document.querySelector(`.result-row[data-code="${s.code}"] .res-score`).value !== '');
+
+    if(!regOrJamb || !session || !level || !semester || scores.length === 0){
+      errorBox.textContent = 'Fill in student reg number, session, level, semester, and at least one score.';
+      errorBox.style.display = 'block';
+      return;
+    }
+
+    try{
+      const res = await fetch(`${API_BASE}/results`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ regOrJamb, session, level, semester, scores })
+      });
+      const data = await res.json();
+      if(!res.ok){
+        errorBox.textContent = data.error || 'Could not save result.';
+        errorBox.style.display = 'block';
+        return;
+      }
+      successBox.textContent = `Result saved for ${data.fullName}.`;
+      successBox.style.display = 'block';
+      document.getElementById('resRegNo').value = '';
+      document.getElementById('resultScoreRows').innerHTML = '';
+    }catch(err){
+      errorBox.textContent = 'Could not reach the server.';
+      errorBox.style.display = 'block';
+    }
+  }
+
+  // ---------- FACULTY ADMIN ----------
+  async function loadFacultyAdminPanel(){
+    document.getElementById('facultyAdminLabel').textContent = FACULTY_ROLE_LABELS[role] || '';
+    try{
+      const [admittedRes, approvedRes] = await Promise.all([
+        fetch(`${API_BASE}/admitted/scoped`, { headers: { 'Authorization': `Bearer ${token}` } }),
+        fetch(`${API_BASE}/applications/faculty-list`, { headers: { 'Authorization': `Bearer ${token}` } })
+      ]);
+      currentFacAdmitted = await admittedRes.json();
+      currentFacApproved = await approvedRes.json();
+
+      document.getElementById('facAdmittedCount').textContent = currentFacAdmitted.length;
+      document.getElementById('facApprovedCount').textContent = currentFacApproved.length;
+
+      renderGroupedByDept('facAdmittedGroups', currentFacAdmitted, ['Name','Reg/JAMB No.','Date Added'], a => `<td>${a.fullName}</td><td>${a.regOrJamb}</td><td>${new Date(a.dateAdmitted).toLocaleDateString()}</td>`);
+      renderGroupedByDept('facApprovedGroups', currentFacApproved, ['Name','Programme','Gender','DOB','State of Origin','Reg/JAMB No.'], a => `<td>${a.fullName}</td><td>${programLabel(a.programType)}</td><td>${a.gender||'—'}</td><td>${a.dob ? new Date(a.dob).toLocaleDateString() : '—'}</td><td>${a.stateOfOrigin||'—'}</td><td>${a.regOrJamb}</td>`);
+    }catch(err){ /* silent */ }
+  }
+
+  function renderGroupedByDept(containerId, list, headers, rowFn){
+    const container = document.getElementById(containerId);
+    container.innerHTML = '';
+    const byDept = {};
+    list.forEach(item => {
+      if(!byDept[item.department]) byDept[item.department] = [];
+      byDept[item.department].push(item);
+    });
+    if(Object.keys(byDept).length === 0){
+      container.innerHTML = '<p class="note">None yet.</p>';
+      return;
+    }
+    Object.keys(byDept).forEach(dept => {
+      const details = document.createElement('details');
+      details.className = 'faculty-group';
+      details.innerHTML = `<summary>${dept} (${byDept[dept].length})</summary>`;
+      const table = document.createElement('table');
+      table.innerHTML = `<thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead>`;
+      const tbody = document.createElement('tbody');
+      byDept[dept].forEach(item => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = rowFn(item);
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody);
+      details.appendChild(table);
+      container.appendChild(details);
+    });
+  }
+
+  function exportFacultyAdmittedOnly(){
+    const rows = [['JAMB Registration Number','Full Name','Department','Date Added']];
+    currentFacAdmitted.forEach(a => rows.push([a.regOrJamb, a.fullName, a.department, new Date(a.dateAdmitted).toLocaleDateString()]));
+    downloadCSV(rows, 'rugipo-admitted-students.csv');
+  }
+
+  function exportFacultyApprovedOnly(){
+    const rows = [['JAMB Registration Number','Full Name','Sex','Date of Birth','State of Origin','Nationality','Email','Department','Level','Programme','Application Number']];
+    currentFacApproved.forEach(a => rows.push([
+      a.regOrJamb, a.fullName, a.gender||'', a.dob ? new Date(a.dob).toLocaleDateString():'',
+      a.stateOfOrigin||'', a.nationality||'', a.email||'', a.department, a.level||'', programLabel(a.programType), a.applicationNo||''
+    ]));
+    downloadCSV(rows, 'rugipo-approved-applications.csv');
+  }
+
+  // ---------- ACADEMIC CALENDAR ----------
+  function addCalRow(containerId, label = '', date = ''){
+    const wrap = document.getElementById(containerId);
+    const div = document.createElement('div');
+    div.className = 'cal-edit-row';
+    div.style.cssText = 'display:flex;gap:8px;margin-bottom:8px;align-items:center;';
+    div.innerHTML = `
+      <input placeholder="Event label" class="cal-label" style="flex:2;" value="${label}">
+      <input placeholder="Date" class="cal-date" style="flex:1;" value="${date}">
+      <button type="button" class="btn-small" onclick="this.parentElement.remove()">Remove</button>
+    `;
+    wrap.appendChild(div);
+  }
+
+  async function loadCalendarPanel(){
+    try{
+      const res = await fetch(`${API_BASE}/calendar`);
+      const data = await res.json();
+      document.getElementById('calSessionLabel').value = data.sessionLabel || '';
+      document.getElementById('calFirstRows').innerHTML = '';
+      document.getElementById('calSecondRows').innerHTML = '';
+      (data.firstSemester || []).forEach(r => addCalRow('calFirstRows', r.label, r.date));
+      (data.secondSemester || []).forEach(r => addCalRow('calSecondRows', r.label, r.date));
+    }catch(err){ /* silent */ }
+  }
+
+  async function saveCalendar(){
+    const errorBox = document.getElementById('calError');
+    const successBox = document.getElementById('calSuccess');
+    errorBox.style.display = 'none'; successBox.style.display = 'none';
+
+    const sessionLabel = document.getElementById('calSessionLabel').value.trim();
+    const firstSemester = Array.from(document.querySelectorAll('#calFirstRows .cal-edit-row')).map(row => ({
+      label: row.querySelector('.cal-label').value.trim(),
+      date: row.querySelector('.cal-date').value.trim()
+    })).filter(r => r.label && r.date);
+    const secondSemester = Array.from(document.querySelectorAll('#calSecondRows .cal-edit-row')).map(row => ({
+      label: row.querySelector('.cal-label').value.trim(),
+      date: row.querySelector('.cal-date').value.trim()
+    })).filter(r => r.label && r.date);
+
+    if(!sessionLabel || firstSemester.length === 0 || secondSemester.length === 0){
+      errorBox.textContent = 'Title and at least one row in each semester are required.';
+      errorBox.style.display = 'block';
+      return;
+    }
+
+    try{
+      const res = await fetch(`${API_BASE}/calendar`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ sessionLabel, firstSemester, secondSemester })
+      });
+      const data = await res.json();
+      if(!res.ok){ errorBox.textContent = data.error || 'Could not save calendar.'; errorBox.style.display = 'block'; return; }
+      successBox.textContent = 'Calendar updated.';
+      successBox.style.display = 'block';
+    }catch(err){
+      errorBox.textContent = 'Could not reach the server.';
+      errorBox.style.display = 'block';
+    }
+  }
+
+  // ---------- WEBSITE CONTENT ----------
+  async function loadAdmissionStatusPanel(){
+    try{
+      const res = await fetch(`${API_BASE}/settings/admission-status`);
+      const data = await res.json();
+      document.getElementById('admLabel').value = data.label || '';
+      document.getElementById('admActive').checked = !!data.active;
+    }catch(err){ /* silent */ }
+  }
+
+  async function saveAdmissionStatus(){
+    const label = document.getElementById('admLabel').value.trim();
+    const active = document.getElementById('admActive').checked;
+    const errorBox = document.getElementById('admError');
+    const successBox = document.getElementById('admSuccess');
+    errorBox.style.display = 'none'; successBox.style.display = 'none';
+    if(!label){ errorBox.textContent = 'Button text is required.'; errorBox.style.display = 'block'; return; }
+
+    const res = await fetch(`${API_BASE}/settings/admission-status`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ label, active })
+    });
+    const data = await res.json();
+    if(!res.ok){ errorBox.textContent = data.error || 'Could not save.'; errorBox.style.display = 'block'; return; }
+    successBox.textContent = 'Banner updated.'; successBox.style.display = 'block';
+  }
+
+  async function postNews(){
+    const title = document.getElementById('newsTitle').value.trim();
+    const body = document.getElementById('newsBody').value.trim();
+    const videoUrl = document.getElementById('newsVideo').value.trim();
+    const images = document.getElementById('newsImages').files;
+    const errorBox = document.getElementById('newsError');
+    const successBox = document.getElementById('newsSuccess');
+    errorBox.style.display = 'none'; successBox.style.display = 'none';
+    if(!title){ errorBox.textContent = 'Title is required.'; errorBox.style.display = 'block'; return; }
+
+    const formData = new FormData();
+    formData.append('title', title);
+    formData.append('body', body);
+    formData.append('videoUrl', videoUrl);
+    Array.from(images).forEach(img => formData.append('images', img));
+
+    const res = await fetch(`${API_BASE}/news`, {
+      method: 'POST', headers: { 'Authorization': `Bearer ${token}` },
+      body: formData
+    });
+    const data = await res.json();
+    if(!res.ok){ errorBox.textContent = data.error || 'Could not post.'; errorBox.style.display = 'block'; return; }
+    successBox.textContent = 'Posted.'; successBox.style.display = 'block';
+    document.getElementById('newsTitle').value = '';
+    document.getElementById('newsBody').value = '';
+    document.getElementById('newsVideo').value = '';
+    document.getElementById('newsImages').value = '';
+    loadNewsPanel();
+  }
+
+  async function loadNewsPanel(){
+    const res = await fetch(`${API_BASE}/news`);
+    const list = await res.json();
+    const box = document.getElementById('newsListBox');
+    box.innerHTML = '';
+    list.forEach(n => {
+      const div = document.createElement('div');
+      div.style.cssText = 'padding:12px 0;border-bottom:1px solid #eee;';
+      div.innerHTML = `<strong>${n.title}</strong><p class="note">${n.body}</p>${n.videoUrl ? `<a href="${n.videoUrl}" target="_blank">Video link</a><br>` : ''}<span class="note">${new Date(n.date).toLocaleDateString()}</span> <button class="btn-small" onclick="deleteNews('${n.id}')">Delete</button>`;
+      box.appendChild(div);
+    });
+  }
+
+  async function deleteNews(id){
+    if(!confirm('Delete this update?')) return;
+    await fetch(`${API_BASE}/news/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+    loadNewsPanel();
+  }
+
+  let officerStudents = { admitted: [], approved: [] };
+
+  async function loadOfficerStudents(){
+    try{
+      const [admittedRes, approvedRes] = await Promise.all([
+        fetch(`${API_BASE}/admitted/scoped`, { headers: { 'Authorization': `Bearer ${token}` } }),
+        fetch(`${API_BASE}/applications/faculty-list`, { headers: { 'Authorization': `Bearer ${token}` } })
+      ]);
+      officerStudents.admitted = admittedRes.ok ? await admittedRes.json() : [];
+      officerStudents.approved = approvedRes.ok ? await approvedRes.json() : [];
+
+      document.getElementById('offAdmittedCount').textContent = officerStudents.admitted.length;
+      document.getElementById('offApprovedCount').textContent = officerStudents.approved.length;
+
+      const body = document.getElementById('officerStudentsBody');
+      body.innerHTML = '';
+
+      officerStudents.admitted.forEach(a => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${a.fullName}</td><td>Admitted</td><td>—</td><td>—</td><td>—</td><td>—</td><td>${a.regOrJamb}</td>`;
+        body.appendChild(tr);
+      });
+      officerStudents.approved.forEach(a => {
+        const tr = document.createElement('tr');
+        const dob = a.dob ? new Date(a.dob).toLocaleDateString() : '—';
+        tr.innerHTML = `<td>${a.fullName}</td><td>Approved</td><td>${programLabel(a.programType)}</td><td>${a.gender || '—'}</td><td>${dob}</td><td>${a.stateOfOrigin || '—'}</td><td>${a.regOrJamb}</td>`;
+        body.appendChild(tr);
+      });
+    }catch(err){ /* silent */ }
+  }
+
+  function exportOfficerStudents(){
+    const rows = [['Full Name','Stage','Programme','Sex','Date of Birth','State of Origin','JAMB/Reg No.','Department']];
+    officerStudents.admitted.forEach(a => rows.push([a.fullName, 'Admitted', '', '', '', '', a.regOrJamb, a.department]));
+    officerStudents.approved.forEach(a => rows.push([a.fullName, 'Approved Application', programLabel(a.programType), a.gender||'', a.dob||'', a.stateOfOrigin||'', a.regOrJamb, a.department]));
+    downloadCSV(rows, `rugipo-${(department||'department').replace(/\s+/g,'-').toLowerCase()}-students.csv`);
+  }
+
+  buildTabs();
+</script>
+
+</body>
+</html>

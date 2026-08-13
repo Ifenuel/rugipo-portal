@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admission Application — RUGIPO</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <img src="images/rugipo-logo.jpg" alt="RUGIPO Crest" style="width:42px;height:42px;border-radius:50%;object-fit:cover;">
+    <div>
+      <div class="name">RUGIPO</div>
+      <div class="sub">Rufus Giwa Polytechnic, Owo</div>
+    </div>
+  </div>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="calendar.html">Academic Calendar</a>
+    <a href="status.html">Check Status</a>
+    <a href="pay.html">Pay Fees</a>
+    <a href="student-login.html">Student Login</a>
+    <a href="admin.html">Staff Login</a>
+  </nav>
+</header>
+
+<section class="pay-page card-float">
+
+  <div id="step-verify">
+    <div class="form-header-bar">
+      <h2>Confirm Your Admission</h2>
+      <button type="button" class="btn-close" onclick="exitApplication()" aria-label="Cancel and return home" title="Cancel">&times;</button>
+    </div>
+    <p class="note">Enter your JAMB Registration Number to confirm you've been admitted before starting registration.</p>
+
+    <label for="jambCheck">JAMB Registration Number</label>
+    <input id="jambCheck" placeholder="e.g. 20261234567AB">
+
+    <button class="btn-block" onclick="verifyJamb()">Verify Admission</button>
+    <p id="verifyError" class="note error" style="display:none;"></p>
+  </div>
+
+  <div id="step-form" style="display:none;">
+    <div class="form-header-bar">
+      <h2>Registration Form</h2>
+      <button type="button" class="btn-close" onclick="exitApplication()" aria-label="Cancel and return home" title="Cancel registration">&times;</button>
+    </div>
+    <p class="note">Admission confirmed. Fill in your details and upload your credentials. You'll create a password here to log into your student portal later.</p>
+
+    <label for="title">Title</label>
+    <select id="title">
+      <option value="">Select title</option>
+      <option>Mr</option>
+      <option>Mrs</option>
+      <option>Miss</option>
+      <option>Master</option>
+    </select>
+
+    <label for="fullName">Full name</label>
+    <input id="fullName" placeholder="As on your JAMB profile">
+
+    <label for="gender">Gender</label>
+    <select id="gender">
+      <option value="">Select gender</option>
+      <option value="Male">Male</option>
+      <option value="Female">Female</option>
+    </select>
+
+    <label for="dob">Date of Birth</label>
+<input id="dob" type="date">
+
+<label for="stateOfOrigin">State of Origin</label>
+<select id="stateOfOrigin">
+  <option value="">Select state</option>
+  <option>Abia</option><option>Adamawa</option><option>Akwa Ibom</option><option>Anambra</option><option>Bauchi</option>
+  <option>Bayelsa</option><option>Benue</option><option>Borno</option><option>Cross River</option><option>Delta</option>
+  <option>Ebonyi</option><option>Edo</option><option>Ekiti</option><option>Enugu</option><option>FCT Abuja</option>
+  <option>Gombe</option><option>Imo</option><option>Jigawa</option><option>Kaduna</option><option>Kano</option>
+  <option>Katsina</option><option>Kebbi</option><option>Kogi</option><option>Kwara</option><option>Lagos</option>
+  <option>Nasarawa</option><option>Niger</option><option>Ogun</option><option>Ondo</option><option>Osun</option>
+  <option>Oyo</option><option>Plateau</option><option>Rivers</option><option>Sokoto</option><option>Taraba</option>
+  <option>Yobe</option><option>Zamfara</option>
+</select>
+
+<label for="nationality">Nationality</label>
+<input id="nationality" value="Nigerian" placeholder="Nationality">
+
+<label for="lgaText">Local Government Area (LGA)</label>
+<input id="lgaText" placeholder="e.g. Owo">
+
+<label for="level">Level Applying For</label>
+<select id="level">
+  <option value="">Select level</option>
+  <option value="ND1">ND1 — Fresher</option>
+  <option value="ND2">ND2 — Returning Student</option>
+  <option value="HND1">HND1 — New HND Intake</option>
+  <option value="HND2">HND2 — Returning Student</option>
+</select>
+
+<label for="programType">Programme Type</label>
+<select id="programType">
+  <option value="">Select programme type</option>
+  <option value="full_time">Full-time</option>
+  <option value="part_time">Part-time</option>
+</select>
+
+    <label for="email">Email</label>
+    <input id="email" type="email" placeholder="you@example.com">
+
+    <label for="phone">Phone number</label>
+    <input id="phone" placeholder="080...">
+
+    <label for="department">Department</label>
+    <select id="department">
+      <optgroup label="Science & Engineering">
+        <option>Computer Science</option>
+        <option>Civil Engineering</option>
+        <option>Computer Engineering</option>
+        <option>Electrical Engineering</option>
+        <option>Mechanical Engineering</option>
+        <option>Science Laboratory Technology</option>
+        <option>Statistics</option>
+      </optgroup>
+      <optgroup label="Business & Management">
+        <option>Accountancy</option>
+        <option>Business Administration</option>
+        <option>Marketing</option>
+        <option>Mass Communication</option>
+        <option>Public Administration</option>
+        <option>Office Technology and Management</option>
+      </optgroup>
+      <optgroup label="Environmental & Agricultural">
+        <option>Building Technology</option>
+        <option>Estate Management</option>
+        <option>Quantity Surveying</option>
+        <option>Agricultural Technology</option>
+        <option>Crop Production Technology</option>
+      </optgroup>
+    </select>
+    <p class="note" id="facultyPreview" style="margin-top:4px;"></p>
+
+    <label for="password">Create a password</label>
+<input id="password" type="password" placeholder="For logging into your student portal">
+<button type="button" class="btn-small" style="margin-top:6px;" onclick="useSurnameAsPassword()">Use my surname as password (demo)</button>
+
+    <hr style="margin:22px 0;border:none;border-top:1px solid #DCD8C9;">
+    <h3 style="margin-bottom:10px;">Upload Credentials</h3>
+    <p class="note" style="margin-bottom:14px;">PDF, JPG, or PNG only. Max 5MB per file. All five documents below are required.</p>
+
+    <label for="jambLetter">JAMB Admission Letter</label>
+    <input id="jambLetter" type="file" accept=".pdf,.jpg,.jpeg,.png" onchange="validateFile(this)">
+
+    <label for="olevel">O'Level Result (WAEC / NECO)</label>
+    <input id="olevel" type="file" accept=".pdf,.jpg,.jpeg,.png" onchange="validateFile(this)">
+
+    <label for="birthCert">Birth Certificate / Age Declaration</label>
+    <input id="birthCert" type="file" accept=".pdf,.jpg,.jpeg,.png" onchange="validateFile(this)">
+
+    <label for="lga">State of Origin / LGA Identification</label>
+    <input id="lga" type="file" accept=".pdf,.jpg,.jpeg,.png" onchange="validateFile(this)">
+
+    <label for="passport">Passport Photograph</label>
+<p class="note" style="margin-bottom:6px;">White or red background only. Must be under 20KB — compress your image first if needed.</p>
+<input id="passport" type="file" accept=".jpg,.jpeg,.png" onchange="validatePassport(this)">
+
+    <hr style="margin:22px 0;border:none;border-top:1px solid #DCD8C9;">
+    <h3 style="margin-bottom:10px;">Next of Kin</h3>
+
+    <label for="nokName">Full name</label>
+    <input id="nokName" placeholder="Next of kin's full name">
+
+    <label for="nokRelationship">Relationship</label>
+    <input id="nokRelationship" placeholder="e.g. Father, Mother, Sibling">
+
+    <label for="nokPhone">Phone number</label>
+    <input id="nokPhone" placeholder="080...">
+
+    <label for="nokAddress">Address</label>
+    <input id="nokAddress" placeholder="Residential address (no commas, colons, or full stops)" oninput="validateAddress('nokAddress','nokAddressError')">
+    <p id="nokAddressError" class="note error" style="display:none;">Address cannot contain , : or .</p>
+
+    <hr style="margin:22px 0;border:none;border-top:1px solid #DCD8C9;">
+    <h3 style="margin-bottom:10px;">Sponsor</h3>
+
+    <label for="sponsorName">Full name</label>
+    <input id="sponsorName" placeholder="Sponsor's full name">
+
+    <label for="sponsorRelationship">Relationship</label>
+    <input id="sponsorRelationship" placeholder="e.g. Parent, Guardian, Self">
+
+    <label for="sponsorPhone">Phone number</label>
+    <input id="sponsorPhone" placeholder="080...">
+
+    <label for="sponsorOccupation">Occupation</label>
+    <input id="sponsorOccupation" placeholder="e.g. Civil Servant, Trader">
+
+    <label for="sponsorAddress">Address</label>
+    <input id="sponsorAddress" placeholder="Residential address (no commas, colons, or full stops)" oninput="validateAddress('sponsorAddress','sponsorAddressError')">
+    <p id="sponsorAddressError" class="note error" style="display:none;">Address cannot contain , : or .</p>
+
+    <button class="btn-block" style="margin-top:20px;" onclick="submitApplication()">Submit Registration</button>
+    <p id="formError" class="note error" style="display:none;"></p>
+  </div>
+
+ <div id="step-done" style="display:none;">
+  <h2>Registration Submitted</h2>
+  <div class="ticket">
+    <div class="ticket-row"><span>Application No.</span><span id="appNoDisplay"></span></div>
+    <div class="ticket-row"><span>Name</span><span id="appNameDisplay"></span></div>
+    <div class="ticket-row"><span>Status</span><span class="status-pill pending">pending</span></div>
+  </div>
+  <p class="note">Save your JAMB number and password — you'll need them to log into the Student Portal later.</p>
+  <a href="application-summary.html" target="_blank" class="btn-block" style="display:block;text-align:center;text-decoration:none;margin-bottom:10px;background:transparent;border:1px solid var(--green-deep);color:var(--green-deep);">Download / Print My Application</a>
+  <a id="proceedToPayBtn" href="#" class="btn-block" style="display:block;text-align:center;text-decoration:none;">Proceed to Pay Acceptance Fee →</a>
+  <a href="student-login.html" class="btn-block" style="display:block;text-align:center;text-decoration:none;margin-top:10px;background:transparent;border:1px solid var(--green-deep);color:var(--green-deep);">I'll pay later — Go to Student Login</a>
+</div>
+</section>
+
+
+<script>
+  function useSurnameAsPassword(){
+  const fullName = document.getElementById('fullName').value.trim();
+  if(!fullName){ alert('Enter your full name first.'); return; }
+  const parts = fullName.split(/\s+/);
+  const surname = parts[parts.length - 1].toLowerCase();
+  document.getElementById('password').value = surname;
+}
+  const API_BASE = 'http://localhost:4000/api';
+  const MAX_FILE_BYTES = 5 * 1024 * 1024;
+  const ALLOWED_TYPES = ['application/pdf', 'image/jpeg', 'image/png'];
+  const ADDRESS_FORBIDDEN = /[,.:]/;
+
+  let verifiedRegOrJamb = null;
+
+  function hasUnsavedInput(){
+    const textFields = ['title','fullName','gender','dob','stateOfOrigin','email','phone','password','programType','nokName','nokRelationship','nokPhone','nokAddress','sponsorName','sponsorRelationship','sponsorPhone','sponsorOccupation','sponsorAddress'];
+    const anyText = textFields.some(id => document.getElementById(id) && document.getElementById(id).value.trim() !== '');
+    const fileFields = ['jambLetter','olevel','birthCert','lga','passport'];
+    const anyFile = fileFields.some(id => document.getElementById(id) && document.getElementById(id).files.length > 0);
+    return anyText || anyFile;
+  }
+
+  function exitApplication(){
+    if(hasUnsavedInput()){
+      const ok = confirm('You have unsaved details. Leaving now will discard them. Continue?');
+      if(!ok) return;
+    }
+    window.location.href = 'index.html';
+  }
+
+  async function verifyJamb(){
+    const jambInput = document.getElementById('jambCheck');
+    const verifyError = document.getElementById('verifyError');
+    const regOrJamb = jambInput.value.trim();
+    verifyError.style.display = 'none';
+
+    if(!regOrJamb){
+      verifyError.textContent = 'Please enter your JAMB registration number.';
+      verifyError.style.display = 'block';
+      return;
+    }
+
+    try{
+      const res = await fetch(`${API_BASE}/admitted/verify/${encodeURIComponent(regOrJamb)}`);
+      const data = await res.json();
+
+      if(!res.ok){
+        verifyError.textContent = data.error || 'Could not verify admission.';
+        verifyError.style.display = 'block';
+        return;
+      }
+
+      verifiedRegOrJamb = regOrJamb;
+      document.getElementById('fullName').value = data.fullName || '';
+      if(data.department){
+        document.getElementById('department').value = data.department;
+        updateFacultyPreview();
+      }
+
+      document.getElementById('step-verify').style.display = 'none';
+      document.getElementById('step-form').style.display = 'block';
+    }catch(err){
+      verifyError.textContent = 'Could not reach the server. Is the backend running?';
+      verifyError.style.display = 'block';
+    }
+  }
+
+  function validateAddress(inputId, errorId){
+    const val = document.getElementById(inputId).value;
+    const errBox = document.getElementById(errorId);
+    if(ADDRESS_FORBIDDEN.test(val)){
+      errBox.style.display = 'block';
+      return false;
+    }
+    errBox.style.display = 'none';
+    return true;
+  }
+
+  function validateFile(input){
+    const file = input.files[0];
+    const errorBox = document.getElementById('formError');
+    if(!file) return true;
+
+    if(file.size > MAX_FILE_BYTES){
+      input.value = '';
+      errorBox.textContent = `"${file.name}" is larger than 5MB. Please choose a smaller file.`;
+      errorBox.style.display = 'block';
+      return false;
+    }
+    if(!ALLOWED_TYPES.includes(file.type)){
+      input.value = '';
+      errorBox.textContent = `"${file.name}" is not a supported file type. Use PDF, JPG, or PNG only.`;
+      errorBox.style.display = 'block';
+      return false;
+    }
+    errorBox.style.display = 'none';
+    return true;
+  }
+
+  function validatePassport(input){
+  const file = input.files[0];
+  const errorBox = document.getElementById('formError');
+  if(!file) return true;
+  const MAX_PASSPORT_BYTES = 20 * 1024;
+  if(file.size > MAX_PASSPORT_BYTES){
+    input.value = '';
+    errorBox.textContent = 'Image uploaded is larger than 20KB. Please upload a passport photograph that is 20KB or less.';
+    errorBox.style.display = 'block';
+    return false;
+  }
+  if(!ALLOWED_TYPES.includes(file.type)){
+    input.value = '';
+    errorBox.textContent = 'Passport photo must be JPG or PNG.';
+    errorBox.style.display = 'block';
+    return false;
+  }
+  errorBox.style.display = 'none';
+  return true;
+}
+
+  async function submitApplication(){
+    if(!verifiedRegOrJamb){
+      alert('Please verify your JAMB registration number first.');
+      return;
+    }
+
+    const title = document.getElementById('title').value;
+const fullName = document.getElementById('fullName').value.trim();
+const gender = document.getElementById('gender').value;
+const dob = document.getElementById('dob').value;
+const stateOfOrigin = document.getElementById('stateOfOrigin').value;
+const nationality = document.getElementById('nationality').value.trim();
+const lgaText = document.getElementById('lgaText').value.trim();
+const level = document.getElementById('level').value;
+const programType = document.getElementById('programType').value;
+    const email = document.getElementById('email').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const department = document.getElementById('department').value;
+    const password = document.getElementById('password').value;
+    
+
+
+    const jambLetter = document.getElementById('jambLetter').files[0];
+    const olevel = document.getElementById('olevel').files[0];
+    const birthCert = document.getElementById('birthCert').files[0];
+    const lga = document.getElementById('lga').files[0];
+    const passport = document.getElementById('passport').files[0];
+
+
+    const nokName = document.getElementById('nokName').value.trim();
+    const nokRelationship = document.getElementById('nokRelationship').value.trim();
+    const nokPhone = document.getElementById('nokPhone').value.trim();
+    const nokAddress = document.getElementById('nokAddress').value.trim();
+
+    const sponsorName = document.getElementById('sponsorName').value.trim();
+    const sponsorRelationship = document.getElementById('sponsorRelationship').value.trim();
+    const sponsorPhone = document.getElementById('sponsorPhone').value.trim();
+    const sponsorOccupation = document.getElementById('sponsorOccupation').value.trim();
+    const sponsorAddress = document.getElementById('sponsorAddress').value.trim();
+
+    const errorBox = document.getElementById('formError');
+    errorBox.style.display = 'none';
+    
+
+    if(!jambLetter || !olevel || !birthCert || !lga || !passport){
+      errorBox.textContent = 'JAMB admission letter, O\'Level result, birth certificate, state of origin/LGA identification, and passport photograph are all required.';
+      errorBox.style.display = 'block';
+      return;
+    }
+    if(!nokName || !nokRelationship || !nokPhone || !nokAddress){
+      errorBox.textContent = 'Please complete all next of kin fields.';
+      errorBox.style.display = 'block';
+      return;
+    }
+    if(!sponsorName || !sponsorRelationship || !sponsorPhone || !sponsorOccupation || !sponsorAddress){
+      errorBox.textContent = 'Please complete all sponsor fields.';
+      errorBox.style.display = 'block';
+      return;
+    }
+    if(!title || !fullName || !gender || !dob || !stateOfOrigin || !nationality || !lgaText || !level || !programType || !email || !phone || !password){
+  errorBox.textContent = 'Please fill in every text field, including nationality, LGA, level, and programme type.';
+  errorBox.style.display = 'block';
+  return;
+}
+    if(!validateAddress('nokAddress','nokAddressError') || !validateAddress('sponsorAddress','sponsorAddressError')){
+      errorBox.textContent = 'Please remove commas, colons, or full stops from the address fields.';
+      errorBox.style.display = 'block';
+      return;
+    }
+    for(const el of [document.getElementById('jambLetter'), document.getElementById('olevel'), document.getElementById('birthCert'), document.getElementById('lga')]){
+  if(!validateFile(el)) return;
+}
+if(!validatePassport(document.getElementById('passport'))) return;
+
+    const formData = new FormData();
+    formData.append('title', title);
+    formData.append('fullName', fullName);
+    formData.append('gender', gender);
+    formData.append('dob', dob);
+formData.append('stateOfOrigin', stateOfOrigin);
+formData.append('nationality', nationality);
+    formData.append('lgaText', lgaText);
+    formData.append('level', level);
+    formData.append('programType', programType);
+formData.append('regOrJamb', verifiedRegOrJamb);
+    formData.append('email', email);
+    formData.append('phone', phone);
+    formData.append('department', department);
+    formData.append('password', password);
+    formData.append('jambLetter', jambLetter);
+    formData.append('olevel', olevel);
+    formData.append('birthCert', birthCert);
+    formData.append('lga', lga);
+    formData.append('passport', passport);
+    formData.append('nextOfKin', JSON.stringify({ name: nokName, relationship: nokRelationship, phone: nokPhone, address: nokAddress }));
+    formData.append('sponsor', JSON.stringify({ name: sponsorName, relationship: sponsorRelationship, phone: sponsorPhone, occupation: sponsorOccupation, address: sponsorAddress }));
+
+    try{
+      const res = await fetch(`${API_BASE}/applications`, {
+        method: 'POST',
+        body: formData
+      });
+
+      if(!res.ok){
+        const errData = await res.json().catch(() => ({}));
+        errorBox.textContent = errData.error || 'Could not submit registration.';
+        errorBox.style.display = 'block';
+        return;
+      }
+
+      const record = await res.json();
+sessionStorage.setItem('rugipo_temp_application', JSON.stringify(record));
+document.getElementById('appNoDisplay').textContent = record.applicationNo;
+document.getElementById('appNameDisplay').textContent = record.fullName;
+
+const payUrl = `pay.html?type=acceptance&reg=${encodeURIComponent(record.regOrJamb)}&name=${encodeURIComponent(record.fullName)}&email=${encodeURIComponent(email)}&phone=${encodeURIComponent(phone)}`;
+document.getElementById('proceedToPayBtn').href = payUrl;
+
+document.getElementById('step-form').style.display = 'none';
+document.getElementById('step-done').style.display = 'block';
+    }catch(err){
+      errorBox.textContent = 'Could not reach the server. Is the backend running?';
+      errorBox.style.display = 'block';
+    }
+  }
+
+  const DEPARTMENT_FACULTY = {
+  'Computer Science':'Science & Engineering', 'Civil Engineering':'Science & Engineering',
+  'Computer Engineering':'Science & Engineering', 'Electrical Engineering':'Science & Engineering',
+  'Mechanical Engineering':'Science & Engineering', 'Science Laboratory Technology':'Science & Engineering',
+  'Statistics':'Science & Engineering',
+  'Accountancy':'Business & Management', 'Business Administration':'Business & Management',
+  'Marketing':'Business & Management', 'Mass Communication':'Business & Management',
+  'Public Administration':'Business & Management', 'Office Technology and Management':'Business & Management',
+  'Building Technology':'Environmental & Agricultural', 'Estate Management':'Environmental & Agricultural',
+  'Quantity Surveying':'Environmental & Agricultural', 'Agricultural Technology':'Environmental & Agricultural',
+  'Crop Production Technology':'Environmental & Agricultural'
+};
+
+function updateFacultyPreview(){
+  const dept = document.getElementById('department').value;
+  document.getElementById('facultyPreview').textContent = dept ? `Faculty: ${DEPARTMENT_FACULTY[dept]}` : '';
+}
+document.getElementById('department').addEventListener('change', updateFacultyPreview);
+updateFacultyPreview();
+</script>
+
+</body>
+</html>

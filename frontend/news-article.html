@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>News — RUGIPO</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header>
+  <div class="brand">
+    <img src="images/rugipo-logo.jpg" alt="RUGIPO Crest" style="width:42px;height:42px;border-radius:50%;object-fit:cover;">
+    <div><div class="name">RUGIPO</div><div class="sub">Rufus Giwa Polytechnic, Owo</div></div>
+  </div>
+  <nav><a href="index.html">Home</a><a href="news-archive.html">All News</a></nav>
+</header>
+
+<section class="news-section" style="max-width:800px;">
+  <div id="articleBox"><p class="note">Loading…</p></div>
+</section>
+
+<script>
+  const API_BASE = 'http://localhost:4000/api';
+  const id = new URLSearchParams(window.location.search).get('id');
+
+  async function loadArticle(){
+    try{
+      const res = await fetch(`${API_BASE}/news/${id}`);
+      if(!res.ok){ document.getElementById('articleBox').innerHTML = '<p class="note error">Article not found.</p>'; return; }
+      const n = await res.json();
+      let mediaHtml = '';
+      if(n.youTubeId){
+        mediaHtml += `<div style="position:relative;padding-bottom:56.25%;height:0;margin:16px 0;"><iframe src="https://www.youtube.com/embed/${n.youTubeId}" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;" allowfullscreen></iframe></div>`;
+      }
+      if(n.images && n.images.length){
+        mediaHtml += `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-top:12px;">${n.images.map(img => `<img src="http://localhost:4000/uploads/news/${n.id}/${img}" style="width:100%;border-radius:8px;">`).join('')}</div>`;
+      }
+      document.getElementById('articleBox').innerHTML = `
+        <h1 style="color:var(--green-deep);margin-bottom:8px;">${n.title}</h1>
+        <span class="news-date">${new Date(n.date).toLocaleDateString()}</span>
+        <p style="margin-top:16px;line-height:1.7;">${n.body}</p>
+        ${mediaHtml}
+      `;
+    }catch(err){
+      document.getElementById('articleBox').innerHTML = '<p class="note error">Could not reach the server.</p>';
+    }
+  }
+  loadArticle();
+</script>
+</body>
+</html>

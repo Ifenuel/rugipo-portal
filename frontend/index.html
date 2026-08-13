@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RUGIPO — Rufus Giwa Polytechnic, Owo</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <img src="images/rugipo-logo.jpg" alt="RUGIPO Crest" style="width:42px;height:42px;border-radius:50%;object-fit:cover;">
+    <div>
+      <div class="name">RUGIPO</div>
+      <div class="sub">Rufus Giwa Polytechnic, Owo</div>
+    </div>
+  </div>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="calendar.html">Academic Calendar</a>
+    <a href="status.html">Check Status</a>
+    <a href="pay.html">Pay Fees</a>
+    <a href="student-login.html">Student Login</a>
+    <a href="admin.html">Staff Login</a>
+  </nav>
+</header>
+
+<div class="ticker-wrap">
+  <div class="ticker-track" id="tickerTrack"></div>
+</div>
+
+<section class="hero">
+  <h1>Excellence in training and research since 1979.</h1>
+  <p>Rufus Giwa Polytechnic, Owo prepares skilled middle-level manpower in Science, Technology, and Management Studies.</p>
+  <div class="hero-actions">
+    <a href="apply.html" id="admissionBtn" class="btn btn-blink">Registration Now!!</a>
+    <a href="status.html" class="btn btn-outline">Check Admission Status</a>
+    <a href="pay.html" class="btn btn-outline">Pay Fees / Levies</a>
+  </div>
+</section>
+
+<section class="welcome">
+  <h2>Welcome to RUGIPO</h2>
+  <p>Rufus Giwa Polytechnic, Owo is a leading tertiary institution in Ondo State, training technicians and technologists across Applied Science, Engineering, and Management Studies since 1979. This portal brings admissions, fee payment, and student records into one secure place.</p>
+</section>
+
+<section class="vm-section">
+  <div class="vm-grid-new">
+
+    <div class="vm-card-new vm-vision">
+      <div class="vm-icon">🌍</div>
+      <h3>Our Vision</h3>
+      <ul class="vm-list">
+        <li><strong>Global Recognition</strong> — to be a leading technological institution recognized internationally for its quality, relevance, and impact.</li>
+        <li><strong>Local &amp; Global Impact</strong> — driving effective training and research that develops people and creates meaningful differences locally in Ondo State, across Nigeria, and worldwide.</li>
+      </ul>
+    </div>
+
+    <div class="vm-card-new vm-mission">
+      <div class="vm-icon">🎯</div>
+      <h3>Our Mission</h3>
+      <ul class="vm-list">
+        <li><strong>Stimulate Excellence</strong> — foster a strong spirit of excellence in teaching, research, scholarship, and creative work among both staff and students.</li>
+        <li><strong>Uphold Values</strong> — encourage academic freedom, innovative thought, high ethical standards, integrity, accountability, and social justice.</li>
+        <li><strong>Manpower Development</strong> — train skilled middle-level manpower in applied sciences, engineering, management, and technology-related fields to support national growth.</li>
+      </ul>
+    </div>
+
+    <div class="vm-card-new vm-values">
+      <div class="vm-icon">⭐</div>
+      <h3>Core Values</h3>
+      <ul class="vm-list">
+        <li><strong>Integrity</strong> — Commitment to integrity and high ethical standards.</li>
+        <li><strong>Excellence</strong> — Spirit of excellence in all academic and creative pursuits.</li>
+        <li><strong>Innovation</strong> — Promotion of hard work, teamwork, originality, and self-reliance.</li>
+      </ul>
+      <p class="note" style="margin-top:10px;">Send me your official Core Values text and I'll drop it in here to replace these placeholders.</p>
+    </div>
+
+  </div>
+</section>
+
+<section class="news-section">
+  <h2>News & Announcements</h2>
+  <div id="newsList" class="news-grid"></div>
+  <p id="newsEmpty" class="note" style="display:none;">No announcements yet — check back soon.</p>
+  <div style="text-align:center;margin-top:24px;">
+    <a href="news-archive.html" class="btn">View All News</a>
+  </div>
+</section>
+
+<section class="officers">
+  <h2>Principal Officers</h2>
+  <div class="officer-grid" id="officerGrid"></div>
+</section>
+
+<footer class="site-footer">
+  <div class="footer-banner">
+    <div class="footer-crest">RG</div>
+    <div class="footer-title">RUGIPO.</div>
+  </div>
+
+  <div class="footer-social">
+    <a href="#" aria-label="Facebook">F</a>
+    <a href="#" aria-label="X">X</a>
+    <a href="#" aria-label="Instagram">IG</a>
+    <a href="#" aria-label="LinkedIn">in</a>
+  </div>
+
+  <p class="footer-tagline">Rufus Giwa Polytechnic, Owo — training skilled manpower since 1979.</p>
+
+  <div class="footer-links">
+    <div>
+      <h4>Quick Links</h4>
+      <a href="apply.html">Admission Application</a>
+      <a href="status.html">Check Status</a>
+      <a href="pay.html">Pay Fees</a>
+      <a href="calendar.html">Academic Calendar</a>
+    </div>
+    <div>
+      <h4>Portals</h4>
+      <a href="student-login.html">Student Portal</a>
+      <a href="admin.html">Staff Login</a>
+    </div>
+    <div>
+      <h4>Contact</h4>
+      <p>Km 46, Off Benin–Owo Expressway,<br>P.M.B. 1019, Owo, Ondo State.</p>
+      <p>Tel: +234 806 851 8729</p>
+      <p>registrar@rugipo.edu.ng</p>
+    </div>
+  </div>
+
+  <div class="footer-bottom">© Rufus Giwa Polytechnic, Owo. All rights reserved.</div>
+</footer>
+
+<script>
+  const API_BASE = 'http://localhost:4000/api';
+
+  async function loadAdmissionStatus(){
+    try{
+      const res = await fetch(`${API_BASE}/settings/admission-status`);
+      const data = await res.json();
+      const btn = document.getElementById('admissionBtn');
+      btn.textContent = data.label;
+      if(!data.active){
+        btn.removeAttribute('href');
+        btn.style.opacity = '0.6';
+        btn.style.cursor = 'not-allowed';
+        btn.onclick = (e) => e.preventDefault();
+      }
+    }catch(err){ /* silent */ }
+  }
+
+  function renderNewsCard(n){
+    let mediaHtml = '';
+
+    if(n.youTubeId){
+      mediaHtml += `
+        <div class="news-video-embed" style="position:relative;width:80%;padding-bottom:45%;height:0;margin:10px auto;">
+          <iframe src="https://www.youtube.com/embed/${n.youTubeId}" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;" allowfullscreen loading="lazy"></iframe>
+        </div>
+        <a href="https://www.youtube.com/watch?v=${n.youTubeId}" target="_blank" class="news-video-link">Watch on YouTube →</a>`;
+    }
+
+    if(n.images && n.images.length){
+      const thumbs = n.images.map(img => `<img src="http://localhost:4000/uploads/news/${n.id}/${img}" alt="" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:6px;">`).join('');
+      mediaHtml += `<div class="news-gallery" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:6px;margin-top:10px;">${thumbs}</div>`;
+    }
+
+    return `
+    <div class="news-card">
+      <h3>${n.title}</h3>
+      ${n.body ? `<p>${n.body.slice(0,150)}${n.body.length > 150 ? '…' : ''}</p>` : ''}
+      ${mediaHtml}
+      <span class="news-date">${new Date(n.date).toLocaleDateString()}</span><br>
+      <a href="news-article.html?id=${n.id}" class="news-video-link">Read more →</a>
+    </div>`;
+  }
+
+  async function loadNews(){
+    try{
+      const res = await fetch(`${API_BASE}/news`);
+      const list = await res.json();
+      const container = document.getElementById('newsList');
+      document.getElementById('newsEmpty').style.display = list.length ? 'none' : 'block';
+      container.innerHTML = list.slice(0, 3).map(renderNewsCard).join('');
+    }catch(err){ /* silent */ }
+  }
+
+  async function loadOfficers(){
+  const res = await fetch(`${API_BASE}/settings/officers`);
+  const officers = await res.json();
+  document.getElementById('officerGrid').innerHTML = officers.map(o => `
+    <div class="officer-card">
+      <div class="officer-photo">
+        ${o.photo
+          ? `<img src="http://localhost:4000/uploads/officers/${o.photo}" alt="${o.name}" style="width:100%;height:100%;object-fit:cover;border-radius:6px;">`
+          : o.initials}
+      </div>
+      <h4>${o.name}</h4>
+      <div class="role">${o.role}</div>
+    </div>`).join('');
+}
+
+  async function loadTicker(){
+  try{
+    const res = await fetch(`${API_BASE}/settings/ticker`);
+    const messages = await res.json();
+    document.getElementById('tickerTrack').innerHTML = messages.length
+      ? messages.map(m => `<span>📢 ${m}</span>`).join('')
+      : `<span>📢 Welcome to RUGIPO.</span>`;
+  }catch(err){ /* silent */ }
+}
+
+  loadTicker();
+  loadAdmissionStatus();
+  loadNews();
+  loadOfficers();
+</script>
+</body>
+</html>
