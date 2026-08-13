@@ -128,7 +128,7 @@ router.post('/', (req, res, next) => {
     }
     next();
   });
-}, (req, res) => {
+}, async (req, res) => {
   const { fullName, regOrJamb, email, phone, department, password, title, gender, dob, stateOfOrigin, nationality, lgaText, level, programType } = req.body;
 
   if (!fullName || !regOrJamb || !email || !phone || !department || !password) {
@@ -410,29 +410,15 @@ router.get('/faculty-list', requireAuth, (req, res) => {
 });
 
 router.get('/me/photo', requireAuth, (req, res) => {
-  try {
-    const userId = req.user.id;
+  if (!req.auth.applicationId) return res.status(403).json({ error: 'Not a student token' });
 
-    const app = db.get('applications')
-      .find({ userId })
-      .value();
+  const app = db.get('applications').find({ id: req.auth.applicationId }).value();
+  if (!app) return res.status(404).json({ error: 'Application not found' });
 
-    if (!app) {
-      return res.status(404).json({ error: 'Application not found' });
-    }
+  const passportUrl = app.documents?.passport;
+  if (!passportUrl) return res.status(404).json({ error: 'Passport photograph not found' });
 
-    const passportUrl = app.documents?.passport;
-
-    if (!passportUrl) {
-      return res.status(404).json({ error: 'Passport photograph not found' });
-    }
-
-    return res.redirect(passportUrl);
-
-  } catch (err) {
-    console.error('Error serving student photo:', err);
-    return res.status(500).json({ error: 'Failed to load passport photograph' });
-  }
+  res.redirect(passportUrl);
 });
 
 // Distinct admission sessions with student counts and JAMB-login status — for ICT's toggle panel
