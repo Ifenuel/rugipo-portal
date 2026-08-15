@@ -95,7 +95,8 @@
       const app = await res.json();
 
       document.getElementById('headerName').textContent = app.fullName;
-      document.getElementById('headerMeta').textContent = `${app.department} (${app.faculty}) — ${app.level || '—'}${app.matricNo ? ' — ' + app.matricNo : ''}`;
+      const programLabel = app.programType === 'part_time' ? 'Part-time' : app.programType === 'full_time' ? 'Full-time' : '';
+document.getElementById('headerMeta').textContent = `${app.department} (${app.faculty}) — ${app.level || '—'}${programLabel ? ' — ' + programLabel : ''}${app.matricNo ? ' — ' + app.matricNo : ''}`;
       document.getElementById('headerStatus').innerHTML = `<span class="status-pill ${app.status === 'approved' ? 'paid' : 'pending'}">${app.status}</span>`;
 
       let congrats = '', letterSection = '';
@@ -128,7 +129,8 @@
     <div class="ticket-row"><span>Faculty</span><span>${app.faculty}</span></div>
     <div class="ticket-row"><span>Gender</span><span>${app.gender || '—'}</span></div>
     <div class="ticket-row"><span>Level</span><span>${app.level || '—'}</span></div>
-    <div class="ticket-row"><span>Status</span><span class="status-pill ${app.status === 'approved' ? 'paid' : 'pending'}">${app.status}</span></div>
+<div class="ticket-row"><span>Programme</span><span>${app.programType === 'part_time' ? 'Part-time' : app.programType === 'full_time' ? 'Full-time' : '—'}</span></div>
+<div class="ticket-row"><span>Status</span><span class="status-pill ${app.status === 'approved' ? 'paid' : 'pending'}">${app.status}</span></div>
   </div>
   <a href="application-summary.html" target="_blank" class="btn-block" style="display:block;text-align:center;text-decoration:none;margin-top:10px;background:transparent;border:1px solid var(--green-deep);color:var(--green-deep);">Download / Print My Application</a>
   ${letterSection}

@@ -426,8 +426,33 @@ const programType = document.getElementById('programType').value;
       errorBox.style.display = 'block';
       return;
     }
-    if(!title || !fullName || !gender || !dob || !stateOfOrigin || !nationality || !lgaText || !level || !programType || !email || !phone || !password){
-  errorBox.textContent = 'Please fill in every text field, including nationality, LGA, level, and programme type.';
+    const requiredFields = [
+  { id: 'title', label: 'Title' },
+  { id: 'fullName', label: 'Full name' },
+  { id: 'gender', label: 'Gender' },
+  { id: 'dob', label: 'Date of Birth' },
+  { id: 'stateOfOrigin', label: 'State of Origin' },
+  { id: 'nationality', label: 'Nationality' },
+  { id: 'lgaText', label: 'LGA' },
+  { id: 'level', label: 'Level Applying For' },
+  { id: 'programType', label: 'Programme Type' },
+  { id: 'email', label: 'Email' },
+  { id: 'phone', label: 'Phone number' },
+  { id: 'password', label: 'Password' }
+];
+
+let firstBad = null;
+for(const f of requiredFields){
+  const el = document.getElementById(f.id);
+  const val = el.value ? el.value.trim() : '';
+  el.style.border = val ? '' : '2px solid #C0392B';
+  if(!val && !firstBad) firstBad = f;
+}
+if(firstBad){
+  const el = document.getElementById(firstBad.id);
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  el.focus();
+  errorBox.textContent = `Please fill in: ${firstBad.label}`;
   errorBox.style.display = 'block';
   return;
 }
