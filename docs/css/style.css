@@ -587,3 +587,43 @@ header{
   .student-grid{ grid-template-columns: 1fr; }
   .student-header-card{ flex-direction: column; text-align: center; }
 }
+
+/* ===== Guided Flow Stepper (poster-style) ===== */
+.flow-progress{
+  display:flex; align-items:center; justify-content:center;
+  gap:0; margin-bottom:28px; flex-wrap:wrap;
+}
+.flow-progress .fp-step{
+  display:flex; align-items:center; gap:8px;
+  font-size:12.5px; font-weight:700; color:#B7B0A0;
+  padding:6px 14px; border-radius:20px;
+}
+.flow-progress .fp-step .fp-num{
+  width:26px;height:26px;border-radius:50%;
+  background:#E9E4D6; color:#8B8672;
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px; font-weight:800;
+}
+.flow-progress .fp-step.done{ color: var(--green-deep); }
+.flow-progress .fp-step.done .fp-num{ background: var(--green-deep); color:#fff; }
+.flow-progress .fp-step.active{ color: var(--gold-deep,#B5850E); }
+.flow-progress .fp-step.active .fp-num{ background: var(--gold); color: var(--ink); }
+.flow-progress .fp-line{ width:34px; height:2px; background:#E9E4D6; }
+.flow-progress .fp-line.done{ background: var(--green-deep); }
+
+/* Poster-style colored section banners inside the form */
+.section-banner{
+  display:flex; align-items:center; gap:14px;
+  background:var(--green-deep); color:#fff;
+  border-radius:8px; padding:12px 18px;
+  margin:26px 0 16px;
+}
+.section-banner.gold{ background: var(--gold); color: var(--ink); }
+.section-banner .sb-icon{
+  width:38px;height:38px;border-radius:8px;
+  background:rgba(255,255,255,0.18);
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px; flex-shrink:0;
+}
+.section-banner.gold .sb-icon{ background: rgba(20,75,50,0.12); }
+.section-banner .sb-text{ font-weight:700; font-size:14.5px; letter-spacing:0.3px; }

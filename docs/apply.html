@@ -27,6 +27,13 @@
 </header>
 
 <section class="pay-page card-float">
+  <div class="flow-progress" id="flowProgress">
+    <div class="fp-step" data-fp="verify"><span class="fp-num">1</span><span>Verify Admission</span></div>
+    <div class="fp-line" id="fpLine1"></div>
+    <div class="fp-step" data-fp="form"><span class="fp-num">2</span><span>Complete Form</span></div>
+    <div class="fp-line" id="fpLine2"></div>
+    <div class="fp-step" data-fp="done"><span class="fp-num">3</span><span>Submitted</span></div>
+  </div>
 
   <div id="step-verify">
     <div class="form-header-bar">
@@ -145,8 +152,10 @@
 <input id="password" type="password" placeholder="For logging into your student portal">
 <button type="button" class="btn-small" style="margin-top:6px;" onclick="useSurnameAsPassword()">Use my surname as password (demo)</button>
 
-    <hr style="margin:22px 0;border:none;border-top:1px solid #DCD8C9;">
-    <h3 style="margin-bottom:10px;">Upload Credentials</h3>
+    <div class="section-banner">
+      <div class="sb-icon">📄</div>
+      <div class="sb-text">Upload Credentials</div>
+    </div>
     <p class="note" style="margin-bottom:14px;">PDF, JPG, or PNG only. Max 5MB per file. All five documents below are required.</p>
 
     <label for="jambLetter">JAMB Admission Letter</label>
@@ -165,8 +174,10 @@
 <p class="note" style="margin-bottom:6px;">White or red background only. Must be under 20KB — compress your image first if needed.</p>
 <input id="passport" type="file" accept=".jpg,.jpeg,.png" onchange="validatePassport(this)">
 
-    <hr style="margin:22px 0;border:none;border-top:1px solid #DCD8C9;">
-    <h3 style="margin-bottom:10px;">Next of Kin</h3>
+    <div class="section-banner gold">
+      <div class="sb-icon">👪</div>
+      <div class="sb-text">Next of Kin</div>
+    </div>
 
     <label for="nokName">Full name</label>
     <input id="nokName" placeholder="Next of kin's full name">
@@ -181,8 +192,10 @@
     <input id="nokAddress" placeholder="Residential address (no commas, colons, or full stops)" oninput="validateAddress('nokAddress','nokAddressError')">
     <p id="nokAddressError" class="note error" style="display:none;">Address cannot contain , : or .</p>
 
-    <hr style="margin:22px 0;border:none;border-top:1px solid #DCD8C9;">
-    <h3 style="margin-bottom:10px;">Sponsor</h3>
+    <div class="section-banner">
+      <div class="sb-icon">💼</div>
+      <div class="sb-text">Sponsor</div>
+    </div>
 
     <label for="sponsorName">Full name</label>
     <input id="sponsorName" placeholder="Sponsor's full name">
@@ -233,6 +246,19 @@
   const ADDRESS_FORBIDDEN = /[,.:]/;
 
   let verifiedRegOrJamb = null;
+  function updateFlowProgress(stage){
+    const order = ['verify','form','done'];
+    const idx = order.indexOf(stage);
+    document.querySelectorAll('.fp-step').forEach(el => {
+      const i = order.indexOf(el.dataset.fp);
+      el.classList.remove('done','active');
+      if(i < idx) el.classList.add('done');
+      else if(i === idx) el.classList.add('active');
+    });
+    document.getElementById('fpLine1').classList.toggle('done', idx >= 1);
+    document.getElementById('fpLine2').classList.toggle('done', idx >= 2);
+  }
+  updateFlowProgress('verify');
 
   function hasUnsavedInput(){
     const textFields = ['title','fullName','gender','dob','stateOfOrigin','email','phone','password','programType','nokName','nokRelationship','nokPhone','nokAddress','sponsorName','sponsorRelationship','sponsorPhone','sponsorOccupation','sponsorAddress'];
@@ -281,6 +307,7 @@
 
       document.getElementById('step-verify').style.display = 'none';
       document.getElementById('step-form').style.display = 'block';
+      updateFlowProgress('form');
     }catch(err){
       verifyError.textContent = 'Could not reach the server. Is the backend running?';
       verifyError.style.display = 'block';
@@ -460,6 +487,7 @@ document.getElementById('proceedToPayBtn').href = payUrl;
 
 document.getElementById('step-form').style.display = 'none';
 document.getElementById('step-done').style.display = 'block';
+updateFlowProgress('done');
     }catch(err){
       errorBox.textContent = 'Could not reach the server. Is the backend running?';
       errorBox.style.display = 'block';
