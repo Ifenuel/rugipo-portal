@@ -37,7 +37,11 @@
 
     <div class="admin-toolbar">
       <input id="searchBox" placeholder="Search name, reg no, or RRR" oninput="renderTable()">
-      <button class="btn-small" onclick="exportCSV()">Export CSV</button>
+<select id="groupBySelect" onchange="renderTable()">
+  <option value="purpose">Group by Purpose</option>
+  <option value="level">Group by Level</option>
+</select>
+<button class="btn-small" onclick="exportCSV()">Export CSV</button>
     </div>
 
     <div class="stat-row">
@@ -376,6 +380,33 @@
     <button class="btn-block" style="margin-top:16px;" onclick="submitResult()">Save Result</button>
     <p id="resultError" class="note error" style="display:none;"></p>
     <p id="resultSuccess" class="note" style="display:none;color:green;"></p>
+
+    <hr style="margin:22px 0;border:none;border-top:1px solid #DCD8C9;">
+<h3 style="margin-bottom:10px;">Bulk Upload Results (CSV)</h3>
+<p class="note">Download a template pre-filled with your students and courses, fill in the Score column, then upload it back.</p>
+
+<label for="bulkResSession">Session</label>
+<input id="bulkResSession" placeholder="e.g. 2026/2027">
+<label for="bulkResLevel">Level</label>
+<select id="bulkResLevel">
+  <option value="">Select level</option>
+  <option>ND1</option><option>ND2</option><option>HND1</option><option>HND2</option>
+</select>
+<label for="bulkResSemester">Semester</label>
+<select id="bulkResSemester">
+  <option value="">Select semester</option>
+  <option>First</option><option>Second</option>
+</select>
+
+<button class="btn-small" onclick="downloadResultTemplate()">Download Template</button>
+
+<label for="bulkResFile" style="margin-top:12px;">Upload Completed CSV</label>
+<input id="bulkResFile" type="file" accept=".csv" onchange="handleBulkResultFile(this)">
+
+<button class="btn-block" style="margin-top:10px;" onclick="uploadBulkResults()">Upload Results</button>
+<p id="bulkResError" class="note error" style="display:none;"></p>
+<p id="bulkResSuccess" class="note" style="display:none;color:green;"></p>
+<div id="bulkResErrorsList" class="note error" style="display:none;white-space:pre-line;"></div>
   </div>
 
   <div id="tab-faculty-admin" style="display:none;">
@@ -487,6 +518,7 @@ Course registration is open for all approved students."></textarea>
 
 <script>
   const API_BASE = 'https://rugipo-portal.onrender.com/api';
+  const API_ORIGIN = API_BASE.replace('/api', '');
 
   const token = sessionStorage.getItem('rugipo_token');
   const username = sessionStorage.getItem('rugipo_username');
@@ -666,51 +698,53 @@ Course registration is open for all approved students."></textarea>
   }
 
   function renderTable(){
-    const q = (document.getElementById('searchBox').value || '').toLowerCase();
-    const filtered = allPayments.filter(p =>
-      p.name.toLowerCase().includes(q) || p.reg.toLowerCase().includes(q) || p.rrr.toLowerCase().includes(q)
-    );
+  const q = (document.getElementById('searchBox').value || '').toLowerCase();
+  const groupBy = document.getElementById('groupBySelect') ? document.getElementById('groupBySelect').value : 'purpose';
+  const filtered = allPayments.filter(p =>
+    p.name.toLowerCase().includes(q) || p.reg.toLowerCase().includes(q) || p.rrr.toLowerCase().includes(q)
+  );
 
-    document.getElementById('emptyState').style.display = filtered.length ? 'none' : 'block';
-    document.getElementById('statCount').textContent = allPayments.length;
-    const paid = allPayments.filter(p => p.status === 'paid');
-    document.getElementById('statPaid').textContent = paid.length;
-    document.getElementById('statTotal').textContent = fmtNaira(paid.reduce((s,p) => s + p.amount, 0));
+  document.getElementById('emptyState').style.display = filtered.length ? 'none' : 'block';
+  document.getElementById('statCount').textContent = allPayments.length;
+  const paid = allPayments.filter(p => p.status === 'paid');
+  document.getElementById('statPaid').textContent = paid.length;
+  document.getElementById('statTotal').textContent = fmtNaira(paid.reduce((s,p) => s + p.amount, 0));
 
-    const groups = {};
-    filtered.forEach(p => {
-      const cat = categorizePurpose(p.purpose);
-      if(!groups[cat]) groups[cat] = [];
-      groups[cat].push(p);
+  const groups = {};
+  filtered.forEach(p => {
+    const key = groupBy === 'level' ? (p.level || 'No Level') : categorizePurpose(p.purpose);
+    if(!groups[key]) groups[key] = [];
+    groups[key].push(p);
+  });
+
+  const container = document.getElementById('paymentGroups');
+  container.innerHTML = '';
+  Object.keys(groups).sort().forEach(key => {
+    const groupPaid = groups[key].filter(p => p.status === 'paid');
+    const details = document.createElement('details');
+    details.className = 'faculty-group';
+    details.open = true;
+    details.innerHTML = `<summary>${key} — ${groups[key].length} transaction(s), ${fmtNaira(groupPaid.reduce((s,p)=>s+p.amount,0))} confirmed</summary>`;
+    const table = document.createElement('table');
+    table.innerHTML = `<thead><tr><th>RRR</th><th>Payer</th><th>Reg No.</th><th>Purpose</th><th>Amount</th><th>Level</th><th>Department</th><th>Programme</th><th>Status</th><th>Date</th></tr></thead>`;
+    const tbody = document.createElement('tbody');
+    groups[key].forEach(p => {
+      const tr = document.createElement('tr');
+      const d = new Date(p.date);
+      tr.innerHTML = `<td>${p.rrr}</td><td>${p.name}</td><td>${p.reg}</td><td>${p.purpose}</td><td>${fmtNaira(p.amount)}</td><td>${p.level || '—'}</td><td>${p.department || '—'}</td><td>${programLabel(p.programType)}</td><td><span class="status-pill ${p.status}">${p.status}</span></td><td>${d.toLocaleDateString()}</td>`;
+      tbody.appendChild(tr);
     });
-
-    const container = document.getElementById('paymentGroups');
-    container.innerHTML = '';
-    Object.keys(groups).forEach(cat => {
-      const groupPaid = groups[cat].filter(p => p.status === 'paid');
-      const details = document.createElement('details');
-      details.className = 'faculty-group';
-      details.open = true;
-      details.innerHTML = `<summary>${cat} — ${groups[cat].length} transaction(s), ${fmtNaira(groupPaid.reduce((s,p)=>s+p.amount,0))} confirmed</summary>`;
-      const table = document.createElement('table');
-      table.innerHTML = `<thead><tr><th>RRR</th><th>Payer</th><th>Reg No.</th><th>Purpose</th><th>Amount</th><th>Department</th><th>Programme</th><th>Status</th><th>Date</th></tr></thead>`;
-      const tbody = document.createElement('tbody');
-      groups[cat].forEach(p => {
-        const tr = document.createElement('tr');
-        const d = new Date(p.date);
-        tr.innerHTML = `<td>${p.rrr}</td><td>${p.name}</td><td>${p.reg}</td><td>${p.purpose}</td><td>${fmtNaira(p.amount)}</td><td>${p.department || '—'}</td><td>${programLabel(p.programType)}</td><td><span class="status-pill ${p.status}">${p.status}</span></td><td>${d.toLocaleDateString()}</td>`;
-        tbody.appendChild(tr);
-      });
-      table.appendChild(tbody);
-      details.appendChild(table);
-      container.appendChild(details);
-    });
-  }
+    table.appendChild(tbody);
+    details.appendChild(table);
+    container.appendChild(details);
+  });
+}
   function exportCSV(){
-    const rows = [['RRR','Name','Reg No','Purpose','Amount','Level','Department','Programme','Status','Date']];
-    allPayments.forEach(p => rows.push([p.rrr, p.name, p.reg, p.purpose, p.amount, p.level || '', p.department || '', programLabel(p.programType), p.status, p.date]));
-    downloadCSV(rows, 'rugipo-payments.csv');
-  }
+  const rows = [['RRR','Name','Reg No','Purpose','Amount','Level','Department','Programme','Status','Date']];
+  const sorted = allPayments.slice().sort((a,b) => (a.level||'').localeCompare(b.level||'') || a.purpose.localeCompare(b.purpose));
+  sorted.forEach(p => rows.push([p.rrr, p.name, p.reg, p.purpose, p.amount, p.level || '', p.department || '', programLabel(p.programType), p.status, p.date]));
+  downloadCSV(rows, 'rugipo-payments.csv');
+}
 
   // ---------- APPLICATIONS ----------
   async function loadApplications(){
@@ -1179,7 +1213,7 @@ Course registration is open for all approved students."></textarea>
   div.className = 'officer-row';
   div.dataset.photo = photo || '';
   div.style.cssText = 'display:flex;gap:8px;margin-bottom:8px;align-items:center;';
-  const photoSrc = photo ? `http://localhost:4000/uploads/officers/${photo}` : '';
+  const photoSrc = photo ? `${API_ORIGIN}/uploads/officers/${photo}` : '';
   div.innerHTML = `
     <div style="width:44px;height:44px;border-radius:50%;overflow:hidden;background:#eee;flex-shrink:0;display:flex;align-items:center;justify-content:center;">
       <img class="off-photo-preview" src="${photoSrc}" style="width:100%;height:100%;object-fit:cover;${photo ? '' : 'display:none;'}">
@@ -1209,7 +1243,7 @@ async function handleOfficerPhoto(input){
     row.dataset.photo = data.filename;
     const preview = row.querySelector('.off-photo-preview');
     const placeholder = row.querySelector('.off-photo-placeholder');
-    preview.src = `http://localhost:4000/uploads/officers/${data.filename}`;
+    preview.src = `${API_ORIGIN}/uploads/officers/${data.filename}`;
     preview.style.display = 'block';
     placeholder.style.display = 'none';
   }catch(err){ alert('Could not reach the server.'); }
@@ -1572,6 +1606,76 @@ async function handleOfficerPhoto(input){
       errorBox.style.display = 'block';
     }
   }
+
+  let bulkResultRows = [];
+
+async function downloadResultTemplate(){
+  const session = document.getElementById('bulkResSession').value.trim();
+  const level = document.getElementById('bulkResLevel').value;
+  const semester = document.getElementById('bulkResSemester').value;
+  if(!session || !level || !semester){ alert('Select session, level, and semester first.'); return; }
+  try{
+    const res = await fetch(`${API_BASE}/results/bulk-template?session=${encodeURIComponent(session)}&level=${encodeURIComponent(level)}&semester=${encodeURIComponent(semester)}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if(!res.ok){ const err = await res.json().catch(()=>({})); alert(err.error || 'Could not generate template.'); return; }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `results-template-${level}-${semester}.csv`; a.click();
+    URL.revokeObjectURL(url);
+  }catch(err){ alert('Could not reach the server.'); }
+}
+
+function handleBulkResultFile(input){
+  const file = input.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const lines = e.target.result.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    lines.shift();
+    bulkResultRows = lines.map(line => {
+      const parts = line.match(/(".*?"|[^,]+)(?=,|$)/g) || [];
+      const clean = parts.map(p => p.replace(/^"|"$/g,'').trim());
+      const [regOrJamb, fullName, code, title, units, score] = clean;
+      return { regOrJamb, code, score };
+    }).filter(r => r.score !== undefined && r.score !== '');
+  };
+  reader.readAsText(file);
+}
+
+async function uploadBulkResults(){
+  const session = document.getElementById('bulkResSession').value.trim();
+  const level = document.getElementById('bulkResLevel').value;
+  const semester = document.getElementById('bulkResSemester').value;
+  const errorBox = document.getElementById('bulkResError');
+  const successBox = document.getElementById('bulkResSuccess');
+  const errorsList = document.getElementById('bulkResErrorsList');
+  errorBox.style.display = 'none'; successBox.style.display = 'none'; errorsList.style.display = 'none';
+
+  if(!session || !level || !semester || bulkResultRows.length === 0){
+    errorBox.textContent = 'Select session/level/semester and upload a completed CSV file first.';
+    errorBox.style.display = 'block';
+    return;
+  }
+
+  try{
+    const res = await fetch(`${API_BASE}/results/bulk-upload`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ session, level, semester, rows: bulkResultRows })
+    });
+    const data = await res.json();
+    if(!res.ok){ errorBox.textContent = data.error || 'Could not upload results.'; errorBox.style.display = 'block'; return; }
+    successBox.textContent = `Saved results for ${data.savedCount} student(s).`;
+    successBox.style.display = 'block';
+    if(data.errorCount > 0){
+      errorsList.textContent = `${data.errorCount} row(s) had issues:\n` + data.errors.join('\n');
+      errorsList.style.display = 'block';
+    }
+    bulkResultRows = [];
+    document.getElementById('bulkResFile').value = '';
+  }catch(err){ errorBox.textContent = 'Could not reach the server.'; errorBox.style.display = 'block'; }
+}
 
   // ---------- FACULTY ADMIN ----------
   async function loadFacultyAdminPanel(){

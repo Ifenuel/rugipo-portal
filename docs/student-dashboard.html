@@ -100,8 +100,10 @@
 
       let congrats = '', letterSection = '';
 
-      if(app.status === 'approved'){
-        congrats = `<div class="congrats-blink">🎉 Congratulations — You've Been Admitted! 🎉</div>`;
+      if(app.status === 'approved' && !app.hasSeenAdmissionMessage){
+  congrats = `<div class="congrats-blink">🎉 Congratulations — You've Been Admitted! 🎉</div>`;
+  fetch(`${API_BASE}/applications/mark-admission-seen`, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}` } });
+} else if(app.status === 'approved'){
         letterSection = `
           <div style="margin-top:20px;">
             <a href="pay.html?type=letter" class="btn-block" style="display:block;text-align:center;text-decoration:none;">Pay Admission Letter Fee</a>

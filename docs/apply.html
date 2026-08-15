@@ -451,7 +451,7 @@ formData.append('regOrJamb', verifiedRegOrJamb);
       }
 
       const record = await res.json();
-sessionStorage.setItem('rugipo_temp_application', JSON.stringify(record));
+localStorage.setItem('rugipo_temp_application', JSON.stringify(record));
 document.getElementById('appNoDisplay').textContent = record.applicationNo;
 document.getElementById('appNameDisplay').textContent = record.fullName;
 

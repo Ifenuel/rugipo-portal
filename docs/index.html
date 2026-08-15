@@ -111,31 +111,39 @@
   <p class="footer-tagline">Rufus Giwa Polytechnic, Owo — training skilled manpower since 1979.</p>
 
   <div class="footer-links">
-    <div>
-      <h4>Quick Links</h4>
-      <a href="apply.html">Admission Application</a>
-      <a href="status.html">Check Status</a>
-      <a href="pay.html">Pay Fees</a>
-      <a href="calendar.html">Academic Calendar</a>
-    </div>
-    <div>
-      <h4>Portals</h4>
-      <a href="student-login.html">Student Portal</a>
-      <a href="admin.html">Staff Login</a>
-    </div>
-    <div>
-      <h4>Contact</h4>
-      <p>Km 46, Off Benin–Owo Expressway,<br>P.M.B. 1019, Owo, Ondo State.</p>
-      <p>Tel: +234 806 851 8729</p>
-      <p>registrar@rugipo.edu.ng</p>
-    </div>
+  <div>
+    <h4>Quick Links</h4>
+    <a href="apply.html">Admission Application</a>
+    <a href="status.html">Check Status</a>
+    <a href="pay.html">Pay Fees</a>
+    <a href="calendar.html">Academic Calendar</a>
+    <a href="transcript.html">Request Transcript</a>
   </div>
+  <div>
+    <h4>Faculties</h4>
+    <span class="note" style="color:#9FAA98;display:block;margin-bottom:8px;">Science & Engineering</span>
+    <span class="note" style="color:#9FAA98;display:block;margin-bottom:8px;">Business & Management</span>
+    <span class="note" style="color:#9FAA98;display:block;">Environmental & Agricultural</span>
+  </div>
+  <div>
+    <h4>Portals</h4>
+    <a href="student-login.html">Student Portal</a>
+    <a href="admin.html">Staff Login</a>
+  </div>
+  <div>
+    <h4>Contact</h4>
+    <p>Km 46, Off Benin–Owo Expressway,<br>P.M.B. 1019, Owo, Ondo State.</p>
+    <p>Tel: +234 806 851 8729</p>
+    <p>registrar@rugipo.edu.ng</p>
+  </div>
+</div>
 
   <div class="footer-bottom">© Rufus Giwa Polytechnic, Owo. All rights reserved.</div>
 </footer>
 
 <script>
   const API_BASE = 'https://rugipo-portal.onrender.com/api';
+  const API_ORIGIN = API_BASE.replace('/api', '');
 
   async function loadAdmissionStatus(){
     try{
@@ -164,7 +172,7 @@
     }
 
     if(n.images && n.images.length){
-      const thumbs = n.images.map(img => `<img src="http://localhost:4000/uploads/news/${n.id}/${img}" alt="" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:6px;">`).join('');
+      const thumbs = n.images.map(img => `<img src="${API_ORIGIN}/uploads/news/${n.id}/${img}" alt="" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:6px;">`).join('');
       mediaHtml += `<div class="news-gallery" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:6px;margin-top:10px;">${thumbs}</div>`;
     }
 
@@ -195,7 +203,8 @@
     <div class="officer-card">
       <div class="officer-photo">
         ${o.photo
-          ? `<img src="http://localhost:4000/uploads/officers/${o.photo}" alt="${o.name}" style="width:100%;height:100%;object-fit:cover;border-radius:6px;">`
+        ? `<img src="${API_ORIGIN}/uploads/officers/${o.photo}" alt="${o.name}" style="width:100%;height:100%;object-fit:cover;border-radius:6px;">`
+      
           : o.initials}
       </div>
       <h4>${o.name}</h4>

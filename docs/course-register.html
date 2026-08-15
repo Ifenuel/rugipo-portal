@@ -62,7 +62,7 @@
 
 <script>
   const API_BASE = 'https://rugipo-portal.onrender.com/api';
-  const token = sessionStorage.getItem('rugipo_student_token');
+  const token = localStorage.getItem('rugipo_student_token');
   if(!token){ window.location.href = 'student-login.html'; }
 
   let currentOffering = null;

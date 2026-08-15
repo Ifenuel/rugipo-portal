@@ -18,7 +18,15 @@ function generateOfficialEmail(fullName){
   const parts = fullName.trim().toLowerCase().split(/\s+/);
   const first = parts[0] || 'staff';
   const last = parts[parts.length - 1] || 'user';
-  return `${first}.${last}@rugipo.edu.ng`;
+  const base = `${first}.${last}`;
+
+  let email = `${base}@rugipo.edu.ng`;
+  let n = 1;
+  while (db.get('staff').find({ officialEmail: email }).value()) {
+    email = `${base}${n}@rugipo.edu.ng`;
+    n++;
+  }
+  return email;
 }
 
 function pruneOldLoginHistory(){

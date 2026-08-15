@@ -53,7 +53,7 @@
   }
 
   async function load(){
-    const temp = sessionStorage.getItem('rugipo_temp_application');
+    const temp = localStorage.getItem('rugipo_temp_application');
     if(temp){
       try{ renderApp(JSON.parse(temp)); return; }catch(e){ /* fall through to token-based load */ }
     }

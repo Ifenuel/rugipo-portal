@@ -214,6 +214,7 @@ if (passportFile.size > MAX_PASSPORT_BYTES) {
     fullName, regOrJamb, email, phone, department, title, gender, dob, stateOfOrigin, nationality, lgaText, level, programType,
     admissionSession: db.get('settings.currentSession').value() || null,
     matricNo: null,
+    hasSeenAdmissionMessage: false,
     password: hashed,
     documents,
     nextOfKin,
@@ -363,6 +364,12 @@ router.put('/bulk/status', requireAuth, (req, res) => {
   });
 
   res.json({ success: true, updated });
+});
+
+router.put('/mark-admission-seen', requireAuth, (req, res) => {
+  if (!req.auth.applicationId) return res.status(403).json({ error: 'Not a student token' });
+  db.get('applications').find({ id: req.auth.applicationId }).assign({ hasSeenAdmissionMessage: true }).write();
+  res.json({ success: true });
 });
 
 router.get('/stats/faculty', requireAuth, (req, res) => {

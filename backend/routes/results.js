@@ -99,5 +99,83 @@ router.get('/me', requireAuth, (req, res) => {
 
   res.json(withCgpa);
 });
+router.get('/bulk-template', requireAuth, (req, res) => {
+  if (req.auth.role !== 'course_officer') return res.status(403).json({ error: 'Only course officers can download this' });
+  const { session, level, semester } = req.query;
+  if (!session || !level || !semester) return res.status(400).json({ error: 'session, level, and semester are required' });
+
+  const offering = db.get('course_offerings').find({ department: req.auth.department, session, level, semester }).value();
+  if (!offering) return res.status(404).json({ error: 'No course list uploaded for this session/level/semester yet' });
+
+  const students = db.get('applications').value().filter(a =>
+    a.department === req.auth.department && a.status === 'approved' && a.level === level
+  );
+
+  const rows = ['regOrJamb,fullName,courseCode,courseTitle,units,score'];
+  students.forEach(s => {
+    offering.courses.forEach(c => {
+      rows.push(`${s.regOrJamb},"${s.fullName}",${c.code},"${c.title}",${c.units},`);
+    });
+  });
+
+  res.setHeader('Content-Type', 'text/csv');
+  res.setHeader('Content-Disposition', `attachment; filename="results-template-${level}-${semester}.csv"`);
+  res.send(rows.join('\n'));
+});
+
+router.post('/bulk-upload', requireAuth, (req, res) => {
+  if (req.auth.role !== 'course_officer') return res.status(403).json({ error: 'Only course officers can upload results' });
+  const { session, level, semester, rows } = req.body;
+  if (!session || !level || !semester || !Array.isArray(rows) || rows.length === 0) {
+    return res.status(400).json({ error: 'session, level, semester, and at least one row are required' });
+  }
+
+  const offering = db.get('course_offerings').find({ department: req.auth.department, session, level, semester }).value();
+  if (!offering) return res.status(400).json({ error: 'No course list uploaded for this session/level/semester yet' });
+
+  const byStudent = {};
+  const errors = [];
+  rows.forEach((r, i) => {
+    if (!r.regOrJamb || !r.code || r.score === '' || r.score === undefined || r.score === null) return;
+    const course = offering.courses.find(c => c.code === r.code);
+    if (!course) { errors.push(`Row ${i+2}: course ${r.code} not found in this offering`); return; }
+    const scoreNum = Number(r.score);
+    if (isNaN(scoreNum) || scoreNum < 0 || scoreNum > 100) { errors.push(`Row ${i+2}: invalid score for ${r.regOrJamb} / ${r.code}`); return; }
+    if (!byStudent[r.regOrJamb]) byStudent[r.regOrJamb] = [];
+    byStudent[r.regOrJamb].push({ code: r.code, score: scoreNum });
+  });
+
+  let savedCount = 0;
+  Object.keys(byStudent).forEach(regOrJamb => {
+    const app = db.get('applications').find({ regOrJamb }).value();
+    if (!app || app.department !== req.auth.department) { errors.push(`${regOrJamb}: student not found in your department`); return; }
+
+    let totalUnits = 0, totalPoints = 0;
+    const gradedScores = byStudent[regOrJamb].map(s => {
+      const course = offering.courses.find(c => c.code === s.code);
+      const units = course ? Number(course.units) : 0;
+      const { grade, point } = gradeFromScore(s.score);
+      totalUnits += units;
+      totalPoints += point * units;
+      return { code: s.code, title: course ? course.title : '', units, score: s.score, grade, point };
+    });
+    const gpa = totalUnits > 0 ? +(totalPoints / totalUnits).toFixed(2) : 0;
+
+    const existing = db.get('results').find({ regOrJamb, session, semester }).value();
+    const record = {
+      id: existing ? existing.id : Date.now().toString() + Math.floor(Math.random()*1000),
+      regOrJamb, fullName: app.fullName, department: app.department,
+      session, level, semester,
+      scores: gradedScores, totalUnits, totalPoints, gpa,
+      uploadedBy: req.auth.username,
+      dateUploaded: new Date().toISOString()
+    };
+    if (existing) db.get('results').find({ id: existing.id }).assign(record).write();
+    else db.get('results').push(record).write();
+    savedCount++;
+  });
+
+  res.json({ savedCount, errorCount: errors.length, errors });
+});
 
 module.exports = router;
