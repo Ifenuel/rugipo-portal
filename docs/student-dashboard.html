@@ -130,7 +130,7 @@
     <div class="ticket-row"><span>Level</span><span>${app.level || '—'}</span></div>
     <div class="ticket-row"><span>Status</span><span class="status-pill ${app.status === 'approved' ? 'paid' : 'pending'}">${app.status}</span></div>
   </div>
-  <a href="application-summary.html" class="btn-block" style="display:block;text-align:center;text-decoration:none;margin-top:10px;background:transparent;border:1px solid var(--green-deep);color:var(--green-deep);">Download / Print My Application</a>
+  <a href="application-summary.html" target="_blank" class="btn-block" style="display:block;text-align:center;text-decoration:none;margin-top:10px;background:transparent;border:1px solid var(--green-deep);color:var(--green-deep);">Download / Print My Application</a>
   ${letterSection}
 `;
     }catch(err){
