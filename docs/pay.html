@@ -33,21 +33,26 @@
     <p class="note">Fill this in exactly as it appears on your admission or student record.</p>
 
     <label for="feeType">What are you paying for?</label>
-<select id="feeType">
-  <option value="acceptance">Acceptance Fee</option>
-  <option value="schoolfees">School Fees (amount based on your admission level)</option>
-  <option value="letter">Admission Letter</option>
-  <option value="verification">Result Verification</option>
-  <option value="transcript">Transcript Request</option>
-  <optgroup label="Hostel Accommodation (optional)" id="hostelOptGroup"></optgroup>
-</select>
+    <select id="feeType">
+      <option value="acceptance">Acceptance Fee</option>
+      <option value="schoolfees">School Fees (amount based on your admission level)</option>
+      <option value="letter">Admission Letter</option>
+      <option value="verification">Result Verification</option>
+      <option value="transcript">Transcript Request</option>
+      <optgroup label="Hostel Accommodation (optional)" id="hostelOptGroup"></optgroup>
+    </select>
+
+    <div id="feeAmountBox" class="ticket" style="margin:10px 0;display:none;">
+      <div class="ticket-row"><span id="feeAmountLabel">Amount to pay</span><span id="feeAmountValue" style="font-weight:700;"></span></div>
+    </div>
+    <p id="feeAmountNote" class="note" style="display:none;"></p>
+    <p id="feeAmountError" class="note error" style="display:none;"></p>
 
     <label for="fullName">Full name</label>
     <input id="fullName" placeholder="As on admission letter">
 
     <label for="regNo">JAMB / Matric number</label>
     <input id="regNo" placeholder="e.g. RUGIPO/ND/24/1234">
-    <div id="schoolFeePreview" class="note" style="display:none;margin-top:6px;"></div>
 
     <label for="email">Email</label>
     <input id="email" type="email" placeholder="you@example.com">
@@ -58,8 +63,6 @@
     <button class="btn-block" onclick="generateRRR()">Generate Reference (RRR)</button>
     <p id="formError" class="note error" style="display:none;"></p>
   </div>
-
-  <div id="schoolFeeSchedule" class="note" style="margin-top:8px;"></div>
 
   <div id="step-rrr" style="display:none;">
     <h2>Your Reference Is Ready</h2>
@@ -83,11 +86,11 @@
   </div>
 
   <div id="step-done" style="display:none;">
-  <h2>Payment Successful</h2>
-  <div id="receiptBody"></div>
-  <div id="postPaymentActions" style="margin-top:14px;"></div>
-  <button class="btn-block" style="margin-top:10px;" onclick="resetFlow()">Make Another Payment</button>
-</div>
+    <h2>Payment Successful</h2>
+    <div id="receiptBody"></div>
+    <div id="postPaymentActions" style="margin-top:14px;"></div>
+    <button class="btn-block" style="margin-top:10px;" onclick="resetFlow()">Make Another Payment</button>
+  </div>
 
 </section>
 
@@ -96,41 +99,99 @@
 
   let currentMethod = null;
   let currentRecord = null;
+  let feeScheduleCache = null;
+  let hostelsCache = null;
+  let regNoDebounce = null;
 
   function fmtNaira(n){ return '₦' + n.toLocaleString('en-NG'); }
 
-  async function checkSchoolFeeLevel(){
+  const FLAT_FEE_LABELS = {
+    acceptance: 'Acceptance Fee',
+    letter: 'Admission Letter',
+    verification: 'Result Verification',
+    transcript: 'Transcript Request'
+  };
+
+  function showAmount(label, amount){
+    document.getElementById('feeAmountLabel').textContent = label;
+    document.getElementById('feeAmountValue').textContent = fmtNaira(amount);
+    document.getElementById('feeAmountBox').style.display = 'block';
+    document.getElementById('feeAmountNote').style.display = 'none';
+    document.getElementById('feeAmountError').style.display = 'none';
+  }
+  function showAmountNote(text){
+    document.getElementById('feeAmountBox').style.display = 'none';
+    document.getElementById('feeAmountError').style.display = 'none';
+    const note = document.getElementById('feeAmountNote');
+    note.textContent = text;
+    note.style.display = 'block';
+  }
+  function showAmountError(text){
+    document.getElementById('feeAmountBox').style.display = 'none';
+    document.getElementById('feeAmountNote').style.display = 'none';
+    const errorEl = document.getElementById('feeAmountError');
+    errorEl.textContent = text;
+    errorEl.style.display = 'block';
+  }
+  function hideAmountArea(){
+    document.getElementById('feeAmountBox').style.display = 'none';
+    document.getElementById('feeAmountNote').style.display = 'none';
+    document.getElementById('feeAmountError').style.display = 'none';
+  }
+
+  async function updateFeeAmountDisplay(){
     const feeType = document.getElementById('feeType').value;
     const reg = document.getElementById('regNo').value.trim();
-    const preview = document.getElementById('schoolFeePreview');
 
-    if(feeType !== 'schoolfees' || !reg){
-      preview.style.display = 'none';
+    if(feeType === 'schoolfees'){
+      if(!reg){
+        showAmountNote('Enter your JAMB or Matric number below to see your exact school fees.');
+        return;
+      }
+      try{
+        const res = await fetch(`${API_BASE}/payments/my-level/${encodeURIComponent(reg)}`);
+        const data = await res.json();
+        if(!res.ok){
+          showAmountError(data.error || 'Could not find your fee.');
+          return;
+        }
+        if(!data.amount){
+          showAmountError(`Your level is ${data.level}, but the fee for it hasn't been set yet. Contact the registrar's office.`);
+          return;
+        }
+        const modeLabel = data.programType === 'part_time' ? 'Part-Time' : 'Full-Time';
+        showAmount(`School Fees — ${data.level} (${modeLabel})`, data.amount);
+      }catch(err){
+        showAmountError('Could not reach the server.');
+      }
       return;
     }
 
-    try{
-      const res = await fetch(`${API_BASE}/payments/my-level/${encodeURIComponent(reg)}`);
-      const data = await res.json();
-      if(!res.ok){
-        preview.textContent = data.error || 'Could not find your level.';
-        preview.style.display = 'block';
-        return;
-      }
-      if(!data.amount){
-        preview.textContent = `Your level is ${data.level}, but the fee for it hasn't been set yet. Contact the registrar's office.`;
-        preview.style.display = 'block';
-        return;
-      }
-      preview.textContent = `You are ${data.level} — your school fees is ${fmtNaira(data.amount)}.`;
-      preview.style.display = 'block';
-    }catch(err){
-      preview.style.display = 'none';
+    if(feeType.startsWith('hostel_')){
+      if(!hostelsCache){ hideAmountArea(); return; }
+      const h = hostelsCache.find(x => x.key === feeType);
+      if(h) showAmount(h.label, h.amount);
+      else hideAmountArea();
+      return;
     }
+
+    if(FLAT_FEE_LABELS[feeType]){
+      if(!feeScheduleCache){ hideAmountArea(); return; }
+      const amount = feeScheduleCache[feeType];
+      if(amount) showAmount(FLAT_FEE_LABELS[feeType], amount);
+      else showAmountError('This fee has not been configured yet. Contact the registrar\'s office.');
+      return;
+    }
+
+    hideAmountArea();
   }
 
-  document.getElementById('regNo').addEventListener('blur', checkSchoolFeeLevel);
-  document.getElementById('feeType').addEventListener('change', checkSchoolFeeLevel);
+  document.getElementById('feeType').addEventListener('change', updateFeeAmountDisplay);
+  document.getElementById('regNo').addEventListener('blur', updateFeeAmountDisplay);
+  document.getElementById('regNo').addEventListener('input', () => {
+    clearTimeout(regNoDebounce);
+    regNoDebounce = setTimeout(updateFeeAmountDisplay, 600);
+  });
 
   async function generateRRR(){
     const name = document.getElementById('fullName').value.trim();
@@ -204,88 +265,65 @@
     `;
 
     const studentToken = localStorage.getItem('rugipo_student_token');
-const postActions = document.getElementById('postPaymentActions');
-if(studentToken){
-  postActions.innerHTML = `<a href="student-dashboard.html" class="btn-block" style="display:block;text-align:center;text-decoration:none;">Return to Student Portal</a>`;
-} else {
-  postActions.innerHTML = `<a href="student-login.html?reg=${encodeURIComponent(currentRecord.reg)}" class="btn-block" style="display:block;text-align:center;text-decoration:none;">Go to Student Login</a>`;
-}
+    const postActions = document.getElementById('postPaymentActions');
+    if(studentToken){
+      postActions.innerHTML = `<a href="student-dashboard.html" class="btn-block" style="display:block;text-align:center;text-decoration:none;">Return to Student Portal</a>`;
+    } else {
+      postActions.innerHTML = `<a href="student-login.html?reg=${encodeURIComponent(currentRecord.reg)}" class="btn-block" style="display:block;text-align:center;text-decoration:none;">Go to Student Login</a>`;
+    }
 
-document.getElementById('step-rrr').style.display = 'none';
-document.getElementById('step-done').style.display = 'block';
+    document.getElementById('step-rrr').style.display = 'none';
+    document.getElementById('step-done').style.display = 'block';
+  }
+
+  async function loadHostelsAndFees(){
+    try{
+      const res = await fetch(`${API_BASE}/payments/hostels`);
+      hostelsCache = await res.json();
+      const group = document.getElementById('hostelOptGroup');
+      hostelsCache.forEach(h => {
+        const opt = document.createElement('option');
+        opt.value = h.key;
+        opt.textContent = `${h.label} — ${fmtNaira(h.amount)}`;
+        group.appendChild(opt);
+      });
+    }catch(err){
+      console.error('Could not load hostel options:', err);
+    }
+
+    try{
+      const res = await fetch(`${API_BASE}/payments/fee-schedule`);
+      feeScheduleCache = await res.json();
+      const feeType = document.getElementById('feeType');
+      Object.keys(FLAT_FEE_LABELS).forEach(key => {
+        const opt = feeType.querySelector(`option[value="${key}"]`);
+        if(opt && feeScheduleCache[key]){
+          opt.textContent = `${FLAT_FEE_LABELS[key]} — ${fmtNaira(feeScheduleCache[key])}`;
+        }
+      });
+    }catch(err){
+      console.error('Could not load fee schedule:', err);
+    }
+
+    updateFeeAmountDisplay();
   }
 
   window.addEventListener('DOMContentLoaded', () => {
-  const params = new URLSearchParams(window.location.search);
-  const type = params.get('type');
-  const reg = params.get('reg');
-  const name = params.get('name');
-  const email = params.get('email');
-  const phone = params.get('phone');
+    const params = new URLSearchParams(window.location.search);
+    const type = params.get('type');
+    const reg = params.get('reg');
+    const name = params.get('name');
+    const email = params.get('email');
+    const phone = params.get('phone');
 
-  if(type) document.getElementById('feeType').value = type;
-  if(reg) document.getElementById('regNo').value = reg;
-  if(name) document.getElementById('fullName').value = name;
-  if(email) document.getElementById('email').value = email;
-  if(phone) document.getElementById('phone').value = phone;
+    if(type) document.getElementById('feeType').value = type;
+    if(reg) document.getElementById('regNo').value = reg;
+    if(name) document.getElementById('fullName').value = name;
+    if(email) document.getElementById('email').value = email;
+    if(phone) document.getElementById('phone').value = phone;
 
-  checkSchoolFeeLevel();
-
-  fetch(`${API_BASE}/payments/hostels`)
-      .then(r => r.json())
-      .then(hostels => {
-        const group = document.getElementById('hostelOptGroup');
-
-        hostels.forEach(h => {
-          const opt = document.createElement('option');
-          opt.value = h.key;
-          opt.textContent = `${h.label} — ₦${h.amount.toLocaleString('en-NG')}`;
-          group.appendChild(opt);
-        });
-      })
-      .catch(err => {
-        console.error('Could not load hostel options:', err);
-      });
+    loadHostelsAndFees();
   });
-
-  fetch(`${API_BASE}/payments/school-fees`)
-  .then(r => r.json())
-  .then(fees => {
-    const lines = Object.keys(fees).map(level => `${level}: ₦${fees[level].toLocaleString('en-NG')}`);
-    document.getElementById('schoolFeeSchedule').textContent = 'School Fees by level — ' + lines.join(' | ');
-  })
-  .catch(() => {});
-
-fetch(`${API_BASE}/payments/fee-schedule`)
-  .then(r => r.json())
-  .then(fees => {
-    const feeType = document.getElementById('feeType');
-
-    const acceptance = feeType.querySelector('option[value="acceptance"]');
-    const letter = feeType.querySelector('option[value="letter"]');
-    const verification = feeType.querySelector('option[value="verification"]');
-    const transcript = feeType.querySelector('option[value="transcript"]');
-
-    if (acceptance && fees.acceptance) {
-      acceptance.textContent = `Acceptance Fee — ${fmtNaira(fees.acceptance)}`;
-    }
-
-    if (letter && fees.letter) {
-      letter.textContent = `Admission Letter — ${fmtNaira(fees.letter)}`;
-    }
-
-    if (verification && fees.verification) {
-      verification.textContent = `Result Verification — ${fmtNaira(fees.verification)}`;
-    }
-
-    if (transcript && fees.transcript) {
-      transcript.textContent = `Transcript Request — ${fmtNaira(fees.transcript)}`;
-    }
-  })
-  .catch(err => {
-    console.error('Could not load fee schedule:', err);
-  });
-  
 
   function resetFlow(){
     document.getElementById('fullName').value = '';
@@ -299,6 +337,7 @@ fetch(`${API_BASE}/payments/fee-schedule`)
     document.getElementById('completeBtn').disabled = true;
     document.getElementById('step-done').style.display = 'none';
     document.getElementById('step-form').style.display = 'block';
+    hideAmountArea();
   }
 </script>
 
