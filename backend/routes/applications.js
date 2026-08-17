@@ -242,11 +242,8 @@ router.post('/login', (req, res) => {
   ).value();
   if (!app) return res.status(401).json({ error: 'Invalid login number or password' });
 
-  const match = bcrypt.compareSync(password, app.password);
-  if (!match) return res.status(401).json({ error: 'Invalid login number or password' });
-
-  // If they logged in specifically with their JAMB reg number, check whether
-  // ICT has disabled JAMB login for their whole admission session
+  // Check JAMB-disabled status BEFORE verifying password, so this message shows
+  // regardless of whether the password entered was correct or not
   const usedJamb = identifier === app.regOrJamb;
   if (usedJamb && app.matricNo) {
     const disabledSessions = db.get('settings.jambDisabledSessions').value() || [];
@@ -257,6 +254,9 @@ router.post('/login', (req, res) => {
     }
   }
 
+  const match = bcrypt.compareSync(password, app.password);
+  if (!match) return res.status(401).json({ error: 'Invalid login number or password' });
+
   const token = jwt.sign(
     { applicationId: app.id, regOrJamb: app.regOrJamb },
     process.env.JWT_SECRET,
@@ -265,7 +265,6 @@ router.post('/login', (req, res) => {
 
   res.json({ token, regOrJamb: app.regOrJamb, matricNo: app.matricNo || null });
 });
-
 router.post('/reset-password', (req, res) => {
   const { regOrJamb, email } = req.body;
   if (!regOrJamb || !email) {
