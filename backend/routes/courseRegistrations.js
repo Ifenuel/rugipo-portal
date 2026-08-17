@@ -18,7 +18,6 @@ function getEligibility(app) {
   const missing = [];
   if (isNewStudent) {
     if (!hasAcceptance) missing.push('Acceptance Fee');
-    if (!hasLetter) missing.push('Admission Letter Fee');
     if (!hasSchoolFee) missing.push('School Fees');
   } else if (!hasSchoolFee) {
     missing.push('School Fees');

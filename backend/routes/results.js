@@ -99,6 +99,7 @@ router.get('/me', requireAuth, (req, res) => {
 
   res.json(withCgpa);
 });
+
 router.get('/bulk-template', requireAuth, (req, res) => {
   if (req.auth.role !== 'course_officer') return res.status(403).json({ error: 'Only course officers can download this' });
   const { session, level, semester } = req.query;
@@ -147,7 +148,7 @@ router.post('/bulk-upload', requireAuth, (req, res) => {
 
   let savedCount = 0;
   Object.keys(byStudent).forEach(regOrJamb => {
-    const app = db.get('applications').find({ regOrJamb }).value();
+    const app = db.get('applications').find(a => a.regOrJamb === regOrJamb || a.matricNo === regOrJamb).value();
     if (!app || app.department !== req.auth.department) { errors.push(`${regOrJamb}: student not found in your department`); return; }
 
     let totalUnits = 0, totalPoints = 0;

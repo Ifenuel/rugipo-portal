@@ -53,35 +53,31 @@
   }
 
   async function load(){
-    const temp = localStorage.getItem('rugipo_temp_application');
-    if(temp){
-      try{ renderApp(JSON.parse(temp)); return; }catch(e){ /* fall through to token-based load */ }
-    }
+  const token = localStorage.getItem('rugipo_student_token');
 
-    const token = localStorage.getItem('rugipo_student_token');
-    if(!token){
-      document.getElementById('loadingMsg').style.display = 'none';
-      document.getElementById('errorMsg').textContent = 'Please log in to your student portal to view your application.';
-      document.getElementById('errorMsg').style.display = 'block';
-      return;
-    }
-
+  if (token) {
     try{
       const res = await fetch(`${API_BASE}/applications/me`, { headers: { 'Authorization': `Bearer ${token}` } });
-      if(!res.ok){
-        document.getElementById('loadingMsg').style.display = 'none';
-        document.getElementById('errorMsg').textContent = 'Could not load your application.';
-        document.getElementById('errorMsg').style.display = 'block';
+      if(res.ok){
+        localStorage.removeItem('rugipo_temp_application');
+        renderApp(await res.json());
         return;
       }
-      renderApp(await res.json());
-    }catch(err){
-      document.getElementById('loadingMsg').style.display = 'none';
-      document.getElementById('errorMsg').textContent = 'Could not reach the server.';
-      document.getElementById('errorMsg').style.display = 'block';
-    }
+    }catch(err){ /* fall through */ }
   }
-  load();
+
+  const temp = localStorage.getItem('rugipo_temp_application');
+  if(temp){
+    try{ renderApp(JSON.parse(temp)); return; }catch(e){}
+  }
+
+  document.getElementById('loadingMsg').style.display = 'none';
+  document.getElementById('errorMsg').textContent = token
+    ? 'Could not load your application.'
+    : 'Please log in to your student portal to view your application.';
+  document.getElementById('errorMsg').style.display = 'block';
+}
+load();
 </script>
 
 </body>
