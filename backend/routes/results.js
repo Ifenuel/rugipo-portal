@@ -32,7 +32,6 @@ router.post('/', requireAuth, (req, res) => {
   }
 
   // Pull the officer's own uploaded course list for this session/level/semester —
-  // never trust course titles/units coming from the client
   const offering = db.get('course_offerings')
     .find({ department: req.auth.department, session, level, semester }).value();
   if (!offering) {

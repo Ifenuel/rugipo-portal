@@ -7,7 +7,7 @@ const API_KEY = process.env.REMITA_API_KEY;
 const SERVICE_TYPE_ID = process.env.REMITA_SERVICE_TYPE_ID;
 const BASE_URL = process.env.REMITA_BASE_URL;
 
-// Set REMITA_MODE=live in .env once you have real, working Remita merchant credentials.
+// Setting REMITA_MODE=live in .env once i have real, working Remita merchant credentials.
 // Until then, every RRR is simulated locally so payments never break due to Remita's sandbox being unreachable.
 const LIVE_MODE = process.env.REMITA_MODE === 'live';
 

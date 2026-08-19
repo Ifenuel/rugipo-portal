@@ -94,7 +94,7 @@ router.get('/search', requireAuth, (req, res) => {
   res.json(results);
 });
 
-// Scoped view: registrar sees all, faculty officer sees their faculty's departments,
+// registrar sees all, faculty officer sees their faculty's departments,
 // course officer sees only their own department
 router.get('/scoped', requireAuth, (req, res) => {
   const role = req.auth.role;

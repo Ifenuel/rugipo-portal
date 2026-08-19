@@ -1,7 +1,3 @@
-// Run this with: npm run seed
-// Creates 4 placeholder staff accounts. Replace names/passwords with real
-// staff details later, then delete data.json and re-run this to reset them.
-
 const bcrypt = require('bcryptjs');
 const db = require('./db');
 
